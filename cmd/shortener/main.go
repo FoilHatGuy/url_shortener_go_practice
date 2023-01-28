@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"handlers"
 	"log"
 	"net/http"
+	"shortener/internal/handlers"
 )
 
 const ( //config
