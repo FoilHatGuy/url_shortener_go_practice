@@ -3,7 +3,7 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/FoilHatGuy/url_shortener_go_practice/urlGenerator"
+	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/internal/urlGenerator"
 )
 
 // type longUrls []string

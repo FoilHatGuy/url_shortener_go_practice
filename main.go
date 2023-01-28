@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/FoilHatGuy/url_shortener_go_practice/handlers"
+	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/internal/handlers"
 	"log"
 	"net/http"
 )
