@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"storage"
+	"shortener/internal/storage"
 	"strconv"
 	"strings"
 )

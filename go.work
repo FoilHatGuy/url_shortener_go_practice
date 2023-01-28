@@ -1,9 +1,0 @@
-go 1.19
-
-use (
-	internal/handlers
-	cmd/shortener
-	internal/urlgenerator
-	internal/storage
-	.
-)
