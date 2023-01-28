@@ -5,11 +5,14 @@ import (
 	"github.com/FoilHatGuy/url_shortener_go_practice/storage"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 const ( //config
 	urlLength = 10
+	host      = "localhost"
+	port      = 8080
 )
 
 func ReceiveUrl(writer http.ResponseWriter, request *http.Request) {
@@ -24,7 +27,8 @@ func ReceiveUrl(writer http.ResponseWriter, request *http.Request) {
 		fmt.Printf("Short url: %s\n\n", shortUrl)
 
 		writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		_, err := writer.Write([]byte(shortUrl))
+		result := host + ":" + strconv.FormatInt(port, 10) + "/" + shortUrl
+		_, err := writer.Write([]byte(result))
 		if err != nil {
 			return
 		}
