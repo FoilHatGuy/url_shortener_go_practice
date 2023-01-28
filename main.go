@@ -17,7 +17,7 @@ func main() {
 		Addr: fmt.Sprintf("%s:%d", host, port),
 	}
 
-	http.HandleFunc("/", handlers.ReceiveUrl)
+	http.HandleFunc("/", handlers.ReceiveURL)
 
 	log.Fatal(server.ListenAndServe())
 }

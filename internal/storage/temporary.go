@@ -3,16 +3,16 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/internal/urlGenerator"
+	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/internal/urlgenerator"
 )
 
-// type longUrls []string
-// type shortUrls []string
+// type longURLs []string
+// type shortURLs []string
 type dataT map[string]string
 
 type storage struct {
-	//longUrls
-	//shortUrls
+	//longURLs
+	//shortURLs
 	data dataT
 }
 
@@ -20,17 +20,17 @@ var Database = new(storage)
 
 //Database.data =
 
-func (s *storage) AddUrl(url string, urlLength int) string {
+func (s *storage) AddURL(url string, urlLength int) string {
 	if Database.data == nil {
 		Database.data = make(dataT)
 	}
-	short := urlGenerator.RandSeq(urlLength)
+	short := urlgenerator.RandSeq(urlLength)
 	s.data[short] = url
-	//s.shortUrls = append(s.shortUrls, short)
+	//s.shortURLs = append(s.shortURLs, short)
 	return short
 }
 
-func (s *storage) GetUrl(url string) (string, error) {
+func (s *storage) GetURL(url string) (string, error) {
 	if Database.data == nil {
 		Database.data = make(dataT)
 	}
