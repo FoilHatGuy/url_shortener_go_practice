@@ -44,6 +44,7 @@ func ReceiveURL(writer http.ResponseWriter, request *http.Request) {
 				fmt.Printf("get complete\n\n")
 				writer.Header().Set("Location", url)
 				writer.WriteHeader(307)
+				_, _ = writer.Write([]byte(url))
 			} else {
 				writer.WriteHeader(http.StatusBadRequest)
 			}
