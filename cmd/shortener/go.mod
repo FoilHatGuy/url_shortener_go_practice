@@ -1,3 +1,3 @@
-module github.com/FoilHatGuy/url_shortener_go_practice/cmd
+module main
 
 go 1.19
