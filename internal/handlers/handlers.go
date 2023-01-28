@@ -27,7 +27,7 @@ func ReceiveURL(writer http.ResponseWriter, request *http.Request) {
 		fmt.Printf("Short url: %s\n\n", shortURL)
 
 		writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		result := host + ":" + strconv.FormatInt(port, 10) + "/" + shortURL
+		result := "http://" + host + ":" + strconv.FormatInt(port, 10) + "/" + shortURL
 		writer.WriteHeader(201)
 		_, err := writer.Write([]byte(result))
 		if err != nil {
