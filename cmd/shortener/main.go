@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	handlers "handleshortener"
 	"log"
-	"main/handlers"
 	"net/http"
 )
 
