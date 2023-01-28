@@ -43,7 +43,7 @@ func ReceiveURL(writer http.ResponseWriter, request *http.Request) {
 			if err == nil {
 				fmt.Printf("get complete\n\n")
 				writer.Header().Set("Location", url)
-				writer.WriteHeader(http.StatusTemporaryRedirect)
+				writer.WriteHeader(307)
 			} else {
 				writer.WriteHeader(http.StatusBadRequest)
 			}
