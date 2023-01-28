@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/internal/storage"
+	"github.com/FoilHatGuy/url_shortener_go_practice/cmd/storage"
 	"io"
 	"net/http"
 	"strconv"
