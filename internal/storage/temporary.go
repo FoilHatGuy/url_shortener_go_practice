@@ -3,7 +3,7 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"shortener/internal/urlgenerator"
+	"urlgenerator"
 )
 
 // type longURLs []string

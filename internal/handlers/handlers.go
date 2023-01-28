@@ -1,10 +1,10 @@
-package handleshortener
+package handlers
 
 import (
 	"fmt"
 	"io"
 	"net/http"
-	"shortener/internal/storage"
+	"storage"
 	"strconv"
 	"strings"
 )
