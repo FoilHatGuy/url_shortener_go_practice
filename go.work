@@ -1,7 +1,9 @@
 go 1.19
 
 use (
-	./internal/handleshortener
+	internal/handlers
 	cmd/shortener
+	internal/urlgenerator
+	internal/storage
 	.
 )
