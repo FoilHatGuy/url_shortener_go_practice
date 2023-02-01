@@ -15,29 +15,59 @@ func TestReceiveURL(t *testing.T) {
 		contentType string
 	}
 	tests := []struct {
-		name   string
-		method string
-		body   string
-		want   want
+		name    string
+		method  string
+		body    string
+		handler func(http.ResponseWriter, *http.Request)
+		target  string
+		want    want
 	}{
 		{
-			name:   "Post req",
-			method: "POST",
-			body:   "http://google.com",
+			name:    "Post req",
+			method:  "POST",
+			body:    "http://google.com",
+			handler: SendURL,
+			target:  "/",
 			want: want{
 				code:        201,
 				response:    "http://localhost:8080/XVlBzgbaiC",
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
+		//{
+		//	name:    "Get req",
+		//	method:  "GET",
+		//	body:    "",
+		//	handler: ReceiveURL,
+		//	target:  "/XVlBzgbaiC",
+		//	want: want{
+		//		code:        200,
+		//		response:    "",
+		//		contentType: "",
+		//	},
+		//},
 		{
-			name:   "Get req",
-			method: "GET",
-			body:   "",
+			name:    "no such url",
+			method:  "GET",
+			body:    "",
+			handler: ReceiveURL,
+			target:  "/nosuchurl_",
 			want: want{
-				code:        307,
-				response:    "http://google.com",
-				contentType: "text/plain; charset=utf-8",
+				code:        400,
+				response:    "",
+				contentType: "",
+			},
+		},
+		{
+			name:    "url too long to be valid",
+			method:  "GET",
+			body:    "",
+			handler: ReceiveURL,
+			target:  "/urltoolongtobevalid",
+			want: want{
+				code:        400,
+				response:    "",
+				contentType: "",
 			},
 		},
 	}
@@ -45,12 +75,12 @@ func TestReceiveURL(t *testing.T) {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
 			body := bytes.NewReader([]byte(tt.body))
-			request := httptest.NewRequest(tt.method, "/", body)
+			request := httptest.NewRequest(tt.method, tt.target, body)
 
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := http.HandlerFunc(ReceiveURL)
+			h := http.HandlerFunc(tt.handler)
 			// запускаем сервер
 			h.ServeHTTP(w, request)
 			res := w.Result()

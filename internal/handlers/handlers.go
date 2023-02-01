@@ -48,6 +48,8 @@ func ReceiveURL(writer http.ResponseWriter, request *http.Request) {
 		} else {
 			writer.WriteHeader(http.StatusBadRequest)
 		}
+	} else {
+		writer.WriteHeader(400)
 	}
 
 }
