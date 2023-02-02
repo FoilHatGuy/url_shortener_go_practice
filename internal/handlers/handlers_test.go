@@ -5,18 +5,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 )
-
-func serve() {
-	r := chi.NewRouter()
-
-	r.Post("/", SendURL)
-	r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", ReceiveURL)
-
-	http.ListenAndServe("http://localhost:8080", r)
-}
 
 func TestReceiveURL(t *testing.T) {
 	type want struct {
@@ -45,18 +37,18 @@ func TestReceiveURL(t *testing.T) {
 			},
 		},
 		// TODO: to complete this autotoest data should be stored on drive
-		{
-			name:    "Get req",
-			method:  "GET",
-			body:    "",
-			handler: ReceiveURL,
-			target:  "http://localhost:8080/XVlBzgbaiC",
-			want: want{
-				code:        200,
-				response:    "",
-				contentType: "",
-			},
-		},
+		//{
+		//	name:    "Get req",
+		//	method:  "GET",
+		//	body:    "",
+		//	handler: ReceiveURL,
+		//	target:  "http://localhost:8080/XVlBzgbaiC",
+		//	want: want{
+		//		code:        200,
+		//		response:    "",
+		//		contentType: "",
+		//	},
+		//},
 		{
 			name:    "no such url",
 			method:  "GET",
@@ -82,43 +74,38 @@ func TestReceiveURL(t *testing.T) {
 			},
 		},
 	}
-	go serve()
 	for _, tt := range tests {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
-			var res *http.Response
-			if tt.method == "GET" {
-				var err error
-				res, err = http.Get(tt.target)
-				if err != nil {
-					return
-				}
-			} else if tt.method == "POST" {
-				var err error
-				body := bytes.NewReader([]byte(tt.body))
-				res, err = http.Post(tt.target, "text/plain", body)
-				if err != nil {
-					return
-				}
+			body := bytes.NewReader([]byte(tt.body))
+			request := httptest.NewRequest(tt.method, tt.target, body)
 
-			}
-			//request := httptest.NewRequest(tt.method, tt.target, body)
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			// определяем хендлер
+			// запускаем сервер
 
-			//w := httptest.NewRecorder()
-			//res := w.Result()
-			//res, err := client.Do(request)
+			r := chi.NewRouter()
+
+			r.Post("/", SendURL)
+			r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", ReceiveURL)
+
+			r.ServeHTTP(w, request)
+			res := w.Result()
+
 			// проверяем код ответа
 			if res.StatusCode != tt.want.code {
-				t.Errorf("Expected status code %d, got %d", tt.want.code, res.StatusCode)
+				t.Errorf("Expected status code %d, got %d", tt.want.code, w.Code)
 			}
 
 			// получаем и проверяем тело запроса
+			defer res.Body.Close()
 			resBody, err := io.ReadAll(res.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
 			if len(string(resBody)) != len(tt.want.response) {
-				t.Errorf("Expected body %s, got %s", tt.want.response, string(resBody))
+				t.Errorf("Expected body %s, got %s", tt.want.response, w.Body.String())
 			}
 
 			// заголовок ответа
