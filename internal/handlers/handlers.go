@@ -45,8 +45,9 @@ func SendURL(writer http.ResponseWriter, request *http.Request) {
 }
 
 func ReceiveURL(writer http.ResponseWriter, request *http.Request) {
+	fmt.Printf("Input url: %q\n\n", request.URL)
 	inputURL := chi.URLParam(request, "shortURL")
-	fmt.Printf("Input url: %s\n", inputURL)
+	fmt.Printf("Input url: %q\n\n", inputURL)
 	if len(inputURL) != urlLength {
 		writer.WriteHeader(http.StatusBadRequest)
 		return

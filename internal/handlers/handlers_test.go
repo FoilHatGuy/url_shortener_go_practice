@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -34,12 +36,13 @@ func TestReceiveURL(t *testing.T) {
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
+		// TODO: to complete this autotoest data should be stored on drive
 		//{
 		//	name:    "Get req",
 		//	method:  "GET",
 		//	body:    "",
 		//	handler: ReceiveURL,
-		//	target:  "/XVlBzgbaiC",
+		//	target:  "http://localhost:8080/XVlBzgbaiC",
 		//	want: want{
 		//		code:        200,
 		//		response:    "",
@@ -51,7 +54,7 @@ func TestReceiveURL(t *testing.T) {
 			method:  "GET",
 			body:    "",
 			handler: ReceiveURL,
-			target:  "/nosuchurl_",
+			target:  "http://localhost:8080/nosuchurl_",
 			want: want{
 				code:        400,
 				response:    "",
@@ -63,7 +66,7 @@ func TestReceiveURL(t *testing.T) {
 			method:  "GET",
 			body:    "",
 			handler: ReceiveURL,
-			target:  "/urltoolongtobevalid",
+			target:  "http://localhost:8080/urltoolongtobevalid",
 			want: want{
 				code:        400,
 				response:    "",
@@ -80,9 +83,14 @@ func TestReceiveURL(t *testing.T) {
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := http.HandlerFunc(tt.handler)
 			// запускаем сервер
-			h.ServeHTTP(w, request)
+
+			r := chi.NewRouter()
+
+			r.Post("/", SendURL)
+			r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", ReceiveURL)
+
+			r.ServeHTTP(w, request)
 			res := w.Result()
 
 			// проверяем код ответа
