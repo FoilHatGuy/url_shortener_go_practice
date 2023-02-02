@@ -5,18 +5,20 @@ import (
 	"log"
 	"net/http"
 	"shortener/internal/handlers"
+	"strconv"
 )
 
 const ( //config
-	host = "localhost"
-	port = 8080
+	urlLength = 10
+	host      = "localhost"
+	port      = 8080
 )
 
 func main() {
 	r := chi.NewRouter()
 
 	r.Post("/", handlers.SendURL)
-	r.Get("/{shortURL:[a-zA-Z]{10}}", handlers.ReceiveURL)
+	r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", handlers.ReceiveURL)
 
 	//http.HandleFunc("/", handlers.ReceiveURL)
 

@@ -11,18 +11,19 @@ import (
 type dataT map[string]string
 
 type storage struct {
-	//longURLs
-	//shortURLs
 	data dataT
 }
 
-var Database = new(storage)
+type DatabaseORM interface {
+	AddURL(string, int) string
+	GetURL(string) (string, error)
+}
 
-//Database.data =
+var Database DatabaseORM = storage{data: make(dataT)}
 
-func (s *storage) AddURL(url string, urlLength int) string {
-	if Database.data == nil {
-		Database.data = make(dataT)
+func (s storage) AddURL(url string, urlLength int) string {
+	if s.data == nil {
+		s.data = make(dataT)
 	}
 	short := urlgenerator.RandSeq(urlLength)
 	s.data[short] = url
@@ -30,9 +31,9 @@ func (s *storage) AddURL(url string, urlLength int) string {
 	return short
 }
 
-func (s *storage) GetURL(url string) (string, error) {
-	if Database.data == nil {
-		Database.data = make(dataT)
+func (s storage) GetURL(url string) (string, error) {
+	if s.data == nil {
+		s.data = make(dataT)
 	}
 	val, ok := s.data[url]
 	fmt.Print(ok, "\n")
