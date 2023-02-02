@@ -20,5 +20,7 @@ func main() {
 	r.Post("/", handlers.SendURL)
 	r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", handlers.ReceiveURL)
 
+	//http.HandleFunc("/", handlers.ReceiveURL)
+
 	log.Fatal(http.ListenAndServe("localhost:8080", r))
 }
