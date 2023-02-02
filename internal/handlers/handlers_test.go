@@ -15,7 +15,7 @@ func serve() {
 	r.Post("/", SendURL)
 	r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", ReceiveURL)
 
-	http.ListenAndServe("localhost:8080", r)
+	http.ListenAndServe("http://localhost:8080", r)
 }
 
 func TestReceiveURL(t *testing.T) {
