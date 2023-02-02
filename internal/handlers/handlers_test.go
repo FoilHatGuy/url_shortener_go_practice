@@ -125,6 +125,7 @@ func TestReceiveURL(t *testing.T) {
 			if res.Header.Get("Content-Type") != tt.want.contentType {
 				t.Errorf("Expected Content-Type %s, got %s", tt.want.contentType, res.Header.Get("Content-Type"))
 			}
+			defer res.Body.Close()
 		})
 	}
 }
