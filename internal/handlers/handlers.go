@@ -44,7 +44,6 @@ func SendURL(ctx *gin.Context) {
 
 func ReceiveURL(ctx *gin.Context) {
 	inputURL := ctx.Params.ByName("shortURL")
-	fmt.Printf("Input url: %q\n\n", inputURL)
 	if len(inputURL) != urlLength {
 		ctx.Status(http.StatusBadRequest)
 		return
