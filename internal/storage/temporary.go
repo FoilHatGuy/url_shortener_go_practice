@@ -3,11 +3,10 @@ package storage
 import (
 	"errors"
 	"fmt"
+	"shortener/internal/cfg"
 	"shortener/internal/urlgenerator"
 )
 
-// type longURLs []string
-// type shortURLs []string
 type dataT map[string]string
 
 type storage struct {
@@ -15,17 +14,22 @@ type storage struct {
 }
 
 type DatabaseORM interface {
-	AddURL(string, int) string
+	AddURL(string) string
 	GetURL(string) (string, error)
+	GetData() dataT
 }
 
 var Database DatabaseORM = storage{data: make(dataT)}
 
-func (s storage) AddURL(url string, urlLength int) string {
+func (s storage) GetData() dataT {
+	return s.data
+}
+
+func (s storage) AddURL(url string) string {
 	if s.data == nil {
 		s.data = make(dataT)
 	}
-	short := urlgenerator.RandSeq(urlLength)
+	short := urlgenerator.RandSeq(cfg.Shortener.UrlLength)
 	s.data[short] = url
 	//s.shortURLs = append(s.shortURLs, short)
 	return short

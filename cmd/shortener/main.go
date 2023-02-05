@@ -1,13 +1,8 @@
 package main
 
 import (
+	_ "github.com/sakirsensoy/genv/dotenv/autoload"
 	"shortener/internal/server"
-)
-
-const ( //config
-	urlLength = 10
-	host      = "localhost"
-	port      = 8080
 )
 
 func main() {
