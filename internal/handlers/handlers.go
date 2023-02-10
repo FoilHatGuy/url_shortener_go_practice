@@ -5,14 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
+	"shortener/internal/cfg"
 	"shortener/internal/storage"
-	"strconv"
-)
-
-const ( //config
-	urlLength = 10
-	host      = "localhost"
-	port      = 8080
 )
 
 func GetShortURL(ctx *gin.Context) {
@@ -20,7 +14,7 @@ func GetShortURL(ctx *gin.Context) {
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
 	inputURL := ctx.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n\n", inputURL)
-	if len(inputURL) != urlLength {
+	if len(inputURL) != cfg.Shortener.UrlLength {
 		ctx.Status(http.StatusBadRequest)
 		return
 	}
@@ -55,7 +49,7 @@ func PostURL(ctx *gin.Context) {
 
 	result := url.URL{
 		Scheme: "http",
-		Host:   host + ":" + strconv.FormatInt(port, 10),
+		Host:   cfg.Server.Host + ":" + cfg.Server.Port,
 		Path:   shortURL,
 	}
 	ctx.String(http.StatusCreated, "%v", result.String())
@@ -82,7 +76,7 @@ func PostApiURL(ctx *gin.Context) {
 
 	result := url.URL{
 		Scheme: "http",
-		Host:   host + ":" + strconv.FormatInt(port, 10),
+		Host:   cfg.Server.Host + ":" + cfg.Server.Port,
 		Path:   shortURL,
 	}
 

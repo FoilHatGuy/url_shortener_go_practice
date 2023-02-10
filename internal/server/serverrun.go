@@ -6,6 +6,8 @@ import (
 	"log"
 	"shortener/internal/cfg"
 	"shortener/internal/handlers"
+	"shortener/internal/storage"
+	"time"
 )
 
 func Run() {
@@ -20,5 +22,17 @@ func Run() {
 			api.POST("/shorten", handlers.PostApiURL)
 		}
 	}
+
+	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
+	storage.Database.LoadData()
+	go func() {
+		for {
+			select {
+			case <-t.C:
+				fmt.Print("AUTOSAVE\n")
+				storage.Database.SaveData()
+			}
+		}
+	}()
 	log.Fatal(r.Run(cfg.Server.Host + ":" + cfg.Server.Port))
 }
