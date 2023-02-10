@@ -40,7 +40,6 @@ func (s storage) SaveData() {
 		}
 		fmt.Print("COMPLETE\n")
 	}
-	return
 }
 func (s storage) LoadData() {
 	if _, err := os.Stat(cfg.Storage.SavePath + "/data.json"); os.IsNotExist(err) {
@@ -58,7 +57,7 @@ func (s storage) AddURL(url string) string {
 	if s.Data == nil {
 		s.Data = make(dataT)
 	}
-	short := urlgenerator.RandSeq(cfg.Shortener.UrlLength)
+	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
 	//s.shortURLs = append(s.shortURLs, short)
 	return short

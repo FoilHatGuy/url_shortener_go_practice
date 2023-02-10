@@ -1,7 +1,7 @@
 package cfg
 
 type shortCfg struct {
-	UrlLength int
+	URLLength int
 }
 
 type serverCfg struct {

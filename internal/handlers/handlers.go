@@ -14,7 +14,7 @@ func GetShortURL(ctx *gin.Context) {
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
 	inputURL := ctx.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n\n", inputURL)
-	if len(inputURL) != cfg.Shortener.UrlLength {
+	if len(inputURL) != cfg.Shortener.URLLength {
 		ctx.Status(http.StatusBadRequest)
 		return
 	}
@@ -55,7 +55,7 @@ func PostURL(ctx *gin.Context) {
 	ctx.String(http.StatusCreated, "%v", result.String())
 }
 
-func PostApiURL(ctx *gin.Context) {
+func PostAPIURL(ctx *gin.Context) {
 	var newReqBody struct {
 		URL string `json:"url"`
 	}

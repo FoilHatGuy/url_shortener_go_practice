@@ -17,7 +17,7 @@ func Run() {
 	r.POST("/", PostURL)
 	api := r.Group("/api")
 	{
-		api.POST("/shorten", PostApiURL)
+		api.POST("/shorten", PostAPIURL)
 	}
 	log.Fatal(r.Run())
 }
@@ -99,7 +99,6 @@ func TestReceiveURL(t *testing.T) {
 				if err != nil {
 					return
 				}
-
 			}
 			if res.StatusCode != tt.want.code {
 				t.Errorf("Expected status code %d, got %d", tt.want.code, res.StatusCode)
@@ -119,12 +118,7 @@ func TestReceiveURL(t *testing.T) {
 			if res.Header.Get("Content-Type") != tt.want.contentType {
 				t.Errorf("Expected Content-Type %s, got %s", tt.want.contentType, res.Header.Get("Content-Type"))
 			}
-			defer func(Body io.ReadCloser) {
-				err := Body.Close()
-				if err != nil {
-
-				}
-			}(res.Body)
+			defer res.Body.Close()
 		})
 	}
 }

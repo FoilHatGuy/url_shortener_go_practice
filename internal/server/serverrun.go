@@ -15,11 +15,12 @@ func Run() {
 	fmt.Print(cfg.Router.BaseURL)
 	baseRouter := r.Group(cfg.Router.BaseURL)
 	{
+		baseRouter.Use(handlers.ArchiveData())
 		baseRouter.GET("/:shortURL", handlers.GetShortURL)
 		baseRouter.POST("/", handlers.PostURL)
 		api := baseRouter.Group("/api")
 		{
-			api.POST("/shorten", handlers.PostApiURL)
+			api.POST("/shorten", handlers.PostAPIURL)
 		}
 	}
 
