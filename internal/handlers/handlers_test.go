@@ -91,6 +91,7 @@ func TestReceiveURL(t *testing.T) {
 			if tt.method == "GET" {
 				var err error
 				res, err = http.Get(tt.target)
+				defer res.Body.Close()
 				if err != nil {
 					return
 				}
@@ -98,11 +99,11 @@ func TestReceiveURL(t *testing.T) {
 				var err error
 				body := bytes.NewReader([]byte(tt.body))
 				res, err = http.Post(tt.target, "text/plain; charset=utf-8", body)
+				defer res.Body.Close()
 				if err != nil {
 					return
 				}
 			}
-			defer res.Body.Close()
 			if res.StatusCode != tt.want.code {
 				t.Errorf("Expected status code %d, got %d", tt.want.code, res.StatusCode)
 			}
