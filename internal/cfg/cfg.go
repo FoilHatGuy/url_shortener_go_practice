@@ -21,7 +21,7 @@ func Initialize() {
 		genv.Key("SERVER_HOST").Default("localhost").String(),
 		"help message for flagname")
 	flag.StringVar(&baseURL, "b",
-		genv.Key("BASE_URL").Default("localhost:3000").String(),
+		genv.Key("BASE_URL").Default("localhost:8080").String(),
 		"help message for flagname")
 	flag.StringVar(&fileStoragePath, "f",
 		genv.Key("FILE_STORAGE_PATH").Default("./data").String(),

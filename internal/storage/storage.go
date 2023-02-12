@@ -31,14 +31,14 @@ func (s storage) SaveData() {
 			return
 		}
 	}
-	fmt.Print("MARSHALLING\n")
+	//fmt.Print("MARSHALLING\n")
 	if data, err := json.Marshal(s.Data); err == nil {
-		fmt.Printf("WRITING %v\n", data)
+		//fmt.Printf("WRITING %v\n", data)
 		err := os.WriteFile(cfg.Storage.SavePath+"/data.json", data, os.ModePerm)
 		if err != nil {
 			return
 		}
-		fmt.Print("COMPLETE\n")
+		//fmt.Print("COMPLETE\n")
 	}
 }
 func (s storage) LoadData() {
