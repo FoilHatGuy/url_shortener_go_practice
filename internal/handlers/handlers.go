@@ -13,14 +13,14 @@ func GetShortURL(ctx *gin.Context) {
 
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
 	inputURL := ctx.Params.ByName("shortURL")
-	//fmt.Printf("Input url: %q\n\n", inputURL)
+	fmt.Printf("Input url: %q\n\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
 		ctx.Status(http.StatusBadRequest)
 		return
 	}
 
 	result, err := storage.Database.GetURL(inputURL)
-	//fmt.Printf("Output url: %s, %t\n", result, err == nil)
+	fmt.Printf("Output url: %s, %t\n", result, err == nil)
 
 	if err != nil {
 		ctx.Status(http.StatusBadRequest)
