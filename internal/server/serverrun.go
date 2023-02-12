@@ -11,7 +11,7 @@ import (
 
 func Run() {
 	r := gin.Default()
-	baseRouter := r.Group(cfg.Router.BaseURL)
+	baseRouter := r.Group("")
 	{
 		baseRouter.Use(handlers.ArchiveData())
 		baseRouter.GET("/:shortURL", handlers.GetShortURL)
