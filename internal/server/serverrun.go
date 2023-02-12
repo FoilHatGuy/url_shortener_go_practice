@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"shortener/internal/cfg"
@@ -12,7 +11,6 @@ import (
 
 func Run() {
 	r := gin.Default()
-	fmt.Print(cfg.Router.BaseURL)
 	baseRouter := r.Group(cfg.Router.BaseURL)
 	{
 		baseRouter.Use(handlers.ArchiveData())
@@ -28,7 +26,7 @@ func Run() {
 	storage.Database.LoadData()
 	go func() {
 		for range t.C {
-			fmt.Print("AUTOSAVE\n")
+			//fmt.Print("AUTOSAVE\n")
 			storage.Database.SaveData()
 		}
 	}()

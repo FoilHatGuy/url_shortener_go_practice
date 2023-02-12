@@ -9,9 +9,14 @@ var (
 	serverAdress    string
 	baseURL         string
 	fileStoragePath string
+
+	Shortener shortCfg
+	Server    serverCfg
+	Storage   storageCfg
+	Router    routerCfg
 )
 
-func Init() {
+func Initialize() {
 	flag.StringVar(&serverAdress, "a",
 		genv.Key("SERVER_HOST").Default("localhost").String(),
 		"help message for flagname")
@@ -22,21 +27,22 @@ func Init() {
 		genv.Key("FILE_STORAGE_PATH").Default("./data").String(),
 		"help message for flagname")
 	flag.Parse()
-}
 
-var Shortener = &shortCfg{
-	URLLength: genv.Key("SHORT_URL_LENGTH").Default(10).Int(),
-}
+	Shortener = shortCfg{
+		URLLength: genv.Key("SHORT_URL_LENGTH").Default(10).Int(),
+	}
 
-var Server = &serverCfg{
-	Host: serverAdress,
-	Port: genv.Key("SERVER_PORT").Default("8080").String(),
-}
-var Router = &routerCfg{
-	BaseURL: baseURL,
-}
-var Storage = &storageCfg{
-	AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(60).Int(),
-	SavePath:         fileStoragePath,
-	StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
+	Server = serverCfg{
+		Host: serverAdress,
+		Port: genv.Key("SERVER_PORT").Default("8080").String(),
+	}
+	Router = routerCfg{
+		BaseURL: baseURL,
+	}
+	Storage = storageCfg{
+		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(60).Int(),
+		SavePath:         fileStoragePath,
+		StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
+	}
+
 }
