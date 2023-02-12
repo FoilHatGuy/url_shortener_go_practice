@@ -27,12 +27,9 @@ func Run() {
 	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
 	storage.Database.LoadData()
 	go func() {
-		for {
-			select {
-			case <-t.C:
-				fmt.Print("AUTOSAVE\n")
-				storage.Database.SaveData()
-			}
+		for range t.C {
+			fmt.Print("AUTOSAVE\n")
+			storage.Database.SaveData()
 		}
 	}()
 	log.Fatal(r.Run(cfg.Server.Host + ":" + cfg.Server.Port))
