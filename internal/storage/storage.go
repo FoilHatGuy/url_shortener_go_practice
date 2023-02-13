@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"shortener/internal/cfg"
 	"shortener/internal/urlgenerator"
 )
@@ -26,7 +27,7 @@ var Database DatabaseORM = storage{Data: make(dataT)}
 
 func (s storage) SaveData() {
 	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
-		err := os.MkdirAll(cfg.Storage.SavePath, os.ModePerm)
+		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -34,7 +35,7 @@ func (s storage) SaveData() {
 	//fmt.Print("MARSHALLING\n")
 	if data, err := json.Marshal(s.Data); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
-		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
+		err := os.WriteFile(filepath.Base(cfg.Storage.SavePath), data, os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -43,12 +44,12 @@ func (s storage) SaveData() {
 }
 func (s storage) LoadData() {
 	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
-		err := os.MkdirAll(cfg.Storage.SavePath, os.ModePerm)
+		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
 		if err != nil {
 			return
 		}
 	}
-	if file, err := os.ReadFile(cfg.Storage.SavePath + "/data.json"); err == nil {
+	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
 		err := json.Unmarshal(file, &s.Data)
 		if err != nil {
 			return
