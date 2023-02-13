@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	//cfg.Initialize()
+	cfg.Initialize()
 }
 
 func main() {

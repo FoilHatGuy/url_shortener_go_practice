@@ -3,7 +3,7 @@ package cfg
 import (
 	"flag"
 	"github.com/sakirsensoy/genv"
-	_ "github.com/sakirsensoy/genv/dotenv/autoload"
+	//_ "github.com/sakirsensoy/genv/dotenv/autoload"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	Router    routerCfg
 )
 
-func init() {
+func Initialize() {
 	flag.StringVar(&serverAdress, "a",
 		genv.Key("SERVER_HOST").Default("localhost").String(),
 		"help message for flagname")
@@ -41,7 +41,7 @@ func init() {
 		BaseURL: baseURL,
 	}
 	Storage = storageCfg{
-		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(60).Int(),
+		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(30).Int(),
 		SavePath:         fileStoragePath,
 		StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
 	}
