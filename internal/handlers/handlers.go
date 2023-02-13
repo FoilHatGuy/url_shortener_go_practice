@@ -45,10 +45,9 @@ func PostURL(ctx *gin.Context) {
 	shortURL := storage.Database.AddURL(inputURL)
 
 	fmt.Printf("Input url: %s\n", inputURL)
-	host := cfg.Router.BaseURL
 	result := url.URL{
 		Scheme: "http",
-		Host:   host,
+		Host:   cfg.Server.Host + ":" + cfg.Server.Port,
 		Path:   shortURL,
 	}
 	fmt.Printf("Short url: %s\n\n", result.String())
