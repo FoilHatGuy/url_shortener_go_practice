@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"shortener/internal/cfg"
 	"testing"
 )
 
@@ -24,7 +23,7 @@ func Run() {
 }
 
 func TestReceiveURL(t *testing.T) {
-	cfg.Initialize()
+	//cfg.Initialize()
 	type want struct {
 		code        int
 		response    string

@@ -3,6 +3,7 @@ package cfg
 import (
 	"flag"
 	"github.com/sakirsensoy/genv"
+	_ "github.com/sakirsensoy/genv/dotenv/autoload"
 )
 
 var (
@@ -16,12 +17,12 @@ var (
 	Router    routerCfg
 )
 
-func Initialize() {
+func init() {
 	flag.StringVar(&serverAdress, "a",
 		genv.Key("SERVER_HOST").Default("localhost").String(),
 		"help message for flagname")
 	flag.StringVar(&baseURL, "b",
-		genv.Key("BASE_URL").Default("localhost:8080").String(),
+		genv.Key("BASE_URL").Default("http://localhost:8080").String(),
 		"help message for flagname")
 	flag.StringVar(&fileStoragePath, "f",
 		genv.Key("FILE_STORAGE_PATH").Default("./data").String(),
