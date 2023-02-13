@@ -45,11 +45,9 @@ func PostURL(ctx *gin.Context) {
 	shortURL := storage.Database.AddURL(inputURL)
 
 	fmt.Printf("Input url: %s\n", inputURL)
-	result := url.URL{
-		Scheme: "http",
-		Host:   cfg.Server.Host + ":" + cfg.Server.Port,
-		Path:   shortURL,
-	}
+
+	result, _ := url.Parse(cfg.Router.BaseURL)
+	result = result.JoinPath(shortURL)
 	fmt.Printf("Short url: %s\n\n", result.String())
 
 	ctx.String(http.StatusCreated, "%v", result.String())
@@ -74,11 +72,8 @@ func PostAPIURL(ctx *gin.Context) {
 	fmt.Printf("Input url: %s\n", newReqBody.URL)
 	fmt.Printf("Short url: %s\n\n", shortURL)
 
-	result := url.URL{
-		Scheme: "http",
-		Host:   cfg.Server.Host + ":" + cfg.Server.Port,
-		Path:   shortURL,
-	}
+	result, _ := url.Parse(cfg.Router.BaseURL)
+	result = result.JoinPath(shortURL)
 
 	newResBody := struct {
 		Result string `json:"result"`

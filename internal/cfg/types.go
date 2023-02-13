@@ -5,8 +5,8 @@ type shortCfg struct {
 }
 
 type serverCfg struct {
-	Host string
-	Port string
+	Address string
+	Port    string
 }
 type routerCfg struct {
 	BaseURL string

@@ -34,8 +34,8 @@ func Initialize() {
 	}
 
 	Server = serverCfg{
-		Host: serverAdress,
-		Port: genv.Key("SERVER_PORT").Default("8080").String(),
+		Address: serverAdress,
+		Port:    genv.Key("SERVER_PORT").Default("8080").String(),
 	}
 	Router = routerCfg{
 		BaseURL: baseURL,

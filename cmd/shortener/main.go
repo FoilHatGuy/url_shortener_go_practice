@@ -11,6 +11,6 @@ func init() {
 }
 
 func main() {
-	fmt.Println(cfg.Server.Host)
+	fmt.Println(cfg.Server.Address)
 	server.Run()
 }
