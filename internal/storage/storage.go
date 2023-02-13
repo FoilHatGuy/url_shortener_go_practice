@@ -34,7 +34,7 @@ func (s storage) SaveData() {
 	//fmt.Print("MARSHALLING\n")
 	if data, err := json.Marshal(s.Data); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
-		err := os.WriteFile(cfg.Storage.SavePath+"/data.json", data, os.ModePerm)
+		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -42,7 +42,7 @@ func (s storage) SaveData() {
 	}
 }
 func (s storage) LoadData() {
-	if _, err := os.Stat(cfg.Storage.SavePath + "/data.json"); os.IsNotExist(err) {
+	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
 		err := os.MkdirAll(cfg.Storage.SavePath, os.ModePerm)
 		if err != nil {
 			return
