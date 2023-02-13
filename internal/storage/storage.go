@@ -26,7 +26,7 @@ var Database DatabaseORM = storage{Data: make(dataT)}
 
 func (s storage) SaveData() {
 	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
-		err := os.Mkdir(cfg.Storage.SavePath, os.ModePerm)
+		err := os.MkdirAll(cfg.Storage.SavePath, os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -43,7 +43,10 @@ func (s storage) SaveData() {
 }
 func (s storage) LoadData() {
 	if _, err := os.Stat(cfg.Storage.SavePath + "/data.json"); os.IsNotExist(err) {
-		return
+		err := os.MkdirAll(cfg.Storage.SavePath, os.ModePerm)
+		if err != nil {
+			return
+		}
 	}
 	if file, err := os.ReadFile(cfg.Storage.SavePath + "/data.json"); err == nil {
 		err := json.Unmarshal(file, &s.Data)

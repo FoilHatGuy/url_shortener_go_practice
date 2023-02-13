@@ -41,7 +41,7 @@ func Initialize() {
 		BaseURL: baseURL,
 	}
 	Storage = storageCfg{
-		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(30).Int(),
+		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(10).Int(),
 		SavePath:         fileStoragePath,
 		StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
 	}
