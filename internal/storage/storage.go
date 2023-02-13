@@ -63,6 +63,7 @@ func (s storage) AddURL(url string) string {
 	}
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
+	s.SaveData()
 	//s.shortURLs = append(s.shortURLs, short)
 	return short
 }
