@@ -3,7 +3,7 @@ package cfg
 import (
 	"flag"
 	"github.com/sakirsensoy/genv"
-	//_ "github.com/sakirsensoy/genv/dotenv/autoload"
+	_ "github.com/sakirsensoy/genv/dotenv/autoload"
 )
 
 var (

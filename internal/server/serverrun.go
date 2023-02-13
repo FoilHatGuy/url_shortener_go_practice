@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"shortener/internal/cfg"
@@ -30,5 +31,6 @@ func Run() {
 			storage.Database.SaveData()
 		}
 	}()
+	fmt.Println("SERVER LISTENING ON", cfg.Server.Host+":"+cfg.Server.Port)
 	log.Fatal(r.Run(cfg.Server.Host + ":" + cfg.Server.Port))
 }
