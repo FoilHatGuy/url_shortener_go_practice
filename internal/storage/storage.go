@@ -35,7 +35,7 @@ func (s storage) SaveData() {
 	//fmt.Print("MARSHALLING\n")
 	if data, err := json.Marshal(s.Data); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
-		err := os.WriteFile(filepath.Base(cfg.Storage.SavePath), data, os.ModePerm)
+		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
 			return
 		}
