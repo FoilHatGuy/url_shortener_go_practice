@@ -19,7 +19,7 @@ var (
 
 func Initialize() {
 	flag.StringVar(&serverAdress, "a",
-		genv.Key("SERVER_HOST").Default("localhost").String(),
+		genv.Key("SEVER_ADDRESS").Default("localhost").String(),
 		"help message for flagname")
 	flag.StringVar(&baseURL, "b",
 		genv.Key("BASE_URL").Default("http://localhost:8080").String(),
