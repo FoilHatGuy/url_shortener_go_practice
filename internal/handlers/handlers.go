@@ -72,8 +72,8 @@ func PostAPIURL(ctx *gin.Context) {
 	}
 	shortURL := storage.Database.AddURL(newReqBody.URL)
 
-	//fmt.Printf("Input url: %s\n", newReqBody.URL)
-	//fmt.Printf("Short url: %s\n\n", shortURL)
+	fmt.Printf("Input url: %s\n", newReqBody.URL)
+	fmt.Printf("Short url: %s\n\n", shortURL)
 
 	result := url.URL{
 		Scheme: "http",
