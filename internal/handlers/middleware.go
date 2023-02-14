@@ -64,20 +64,21 @@ func ArchiveData() gin.HandlerFunc {
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
-		if strings.Contains(acceptsType, "gzip") {
+		if strings.Contains(acceptsType, "gzppip") {
 			fmt.Println("dasdsdsadasdasdasdasdasdsa")
 			c.Writer.Header().Set("Content-Encoding", "gzip")
 
-			data := wb.Body.Bytes()
-			fmt.Println(string(data))
+			data := wb.Body
+			fmt.Println("string before compression\t", data.String())
 			wb.Body.Reset()
+			fmt.Println("string before compression\t", data.String())
 
 			buffer := &bytes.Buffer{}
 
-			gz, err := gzip.NewWriterLevel(buffer, gzip.BestSpeed)
+			gz := gzip.NewWriter(buffer)
 			//var buf1 []byte
-			_, err = gz.Write(data)
-			fmt.Println(buffer.Bytes())
+			_, err := gz.Write(data.Bytes())
+			fmt.Println("bytes after compression  \t", buffer.Bytes())
 			if err != nil {
 				return
 			}
@@ -88,7 +89,7 @@ func ArchiveData() gin.HandlerFunc {
 				return
 			}
 
-			fmt.Println(wb.Body.String())
+			fmt.Println("string after compression\t", wb.Body.String())
 
 		}
 		wb.Flush()
