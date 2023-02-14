@@ -41,6 +41,7 @@ func Run() {
 func TestReceiveURL(t *testing.T) {
 	cfg.Initialize()
 	type want struct {
+		acceptType  string
 		code        int
 		response    string
 		contentType string
@@ -58,6 +59,7 @@ func TestReceiveURL(t *testing.T) {
 			body:   "http://a30ac6lti.biz/fc6pql9n/duut2ohnkaja",
 			target: "http://localhost:8080/",
 			want: want{
+				acceptType:  "text/plain",
 				code:        201,
 				response:    "http://localhost:8080/XVlBzgbaiC",
 				contentType: "text/plain; charset=utf-8",
@@ -70,6 +72,7 @@ func TestReceiveURL(t *testing.T) {
 			body:   "",
 			target: "http://localhost:8080/XVlBzgbaiC",
 			want: want{
+				acceptType:  "text/plain",
 				code:        200,
 				response:    "",
 				contentType: "",
@@ -81,6 +84,7 @@ func TestReceiveURL(t *testing.T) {
 			body:   "",
 			target: "http://localhost:8080/nosuchurl_",
 			want: want{
+				acceptType:  "text/plain",
 				code:        400,
 				response:    "",
 				contentType: "",
@@ -92,6 +96,7 @@ func TestReceiveURL(t *testing.T) {
 			body:   "",
 			target: "http://localhost:8080/urltoolongtobevalid",
 			want: want{
+				acceptType:  "text/plain",
 				code:        400,
 				response:    "",
 				contentType: "",
@@ -99,13 +104,18 @@ func TestReceiveURL(t *testing.T) {
 		},
 	}
 	go Run()
+	client := &http.Client{}
 	for _, tt := range tests {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
 			var res *http.Response
 			if tt.method == "GET" {
 				var err error
-				res, err = http.Get(tt.target)
+				//res, err = http.Get(tt.target)
+				body := bytes.NewReader([]byte(tt.body))
+				r, _ := http.NewRequest("GET", tt.target, body)
+				r.Header.Add("Accept-Encoding", tt.want.acceptType)
+				res, err = client.Do(r)
 				if err != nil {
 					return
 				}
@@ -113,7 +123,13 @@ func TestReceiveURL(t *testing.T) {
 			} else if tt.method == "POST" {
 				var err error
 				body := bytes.NewReader([]byte(tt.body))
-				res, err = http.Post(tt.target, "text/plain; charset=utf-8", body)
+				r, _ := http.NewRequest("POST", tt.target, body)
+				r.Header.Add("Accept-Encoding", tt.want.acceptType)
+				//res, err = http.Post(tt.target, "text/plain; charset=utf-8", body)
+				res, err = client.Do(r)
+				if err != nil {
+					panic(err)
+				}
 				if err != nil {
 					return
 				}

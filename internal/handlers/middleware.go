@@ -67,6 +67,7 @@ func ArchiveData() gin.HandlerFunc {
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
+		fmt.Println(acceptsType)
 		respT, okT := c.Get("responseType")
 		respType := respT.(string)
 		respS, okS := c.Get("responseStatus")
