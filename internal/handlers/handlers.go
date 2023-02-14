@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -29,19 +30,21 @@ func GetShortURL(ctx *gin.Context) {
 	}
 
 	//fmt.Printf("get complete\n\n")
-	ctx.Redirect(307, result)
+	ctx.Set("responseType", "redirect")
+	ctx.Set("responseStatus", http.StatusTemporaryRedirect)
+	ctx.Set("responseBody", bytes.NewBuffer([]byte(result)))
 }
 
 func PostURL(ctx *gin.Context) {
 	data, _ := ctx.Get("Body")
 	if data == nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	inputURL := data.(string)
 	_, err := url.Parse(inputURL)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	shortURL := storage.Database.AddURL(inputURL)
@@ -52,15 +55,15 @@ func PostURL(ctx *gin.Context) {
 	result = result.JoinPath(shortURL)
 	fmt.Printf("Short url: %s\n\n", result.String())
 
-	ctx.Writer.WriteHeader(http.StatusCreated)
-	ctx.Header("Content-Type", "application/json")
-	ctx.Writer.Write([]byte(result.String()))
+	ctx.Set("responseType", "text")
+	ctx.Set("responseStatus", http.StatusCreated)
+	ctx.Set("responseBody", bytes.NewBuffer([]byte(result.String())))
 }
 
 func PostAPIURL(ctx *gin.Context) {
 	data, _ := ctx.Get("Body")
 	if data == nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	inputURL := data.(string)
@@ -77,7 +80,7 @@ func PostAPIURL(ctx *gin.Context) {
 
 	_, err := url.Parse(newReqBody.URL)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	shortURL := storage.Database.AddURL(newReqBody.URL)
@@ -93,6 +96,9 @@ func PostAPIURL(ctx *gin.Context) {
 	}{result.String()}
 	var output []byte
 	output, err = json.Marshal(newResBody)
-	ctx.Writer.WriteHeader(http.StatusCreated)
-	ctx.Writer.Write(output)
+	fmt.Println(output)
+
+	ctx.Set("responseType", "json")
+	ctx.Set("responseStatus", http.StatusCreated)
+	ctx.Set("responseBody", bytes.NewBuffer(output))
 }

@@ -1,29 +1,22 @@
 package handlers
 
 import (
-	"bufio"
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 )
 
-type customWriter struct {
-	body   []byte
-	writer gin.ResponseWriter
-}
-
 func ArchiveData() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var wb *ResponseBuffer
-		wb = NewResponseBuffer(c.Writer)
-		c.Writer = wb
-
 		contentType := c.GetHeader("Content-Type")
+		c.Set("responseType", "")
+		c.Set("responseStatus", 200)
+		c.Set("responseBody", bytes.NewBuffer([]byte{}))
 		fmt.Println(contentType)
 		if strings.Contains(contentType, "gzip") {
 			body := &bytes.Buffer{}
@@ -31,7 +24,12 @@ func ArchiveData() gin.HandlerFunc {
 			if err != nil {
 				return
 			}
-			defer c.Request.Body.Close()
+			defer func(Body io.ReadCloser) {
+				err := Body.Close()
+				if err != nil {
+
+				}
+			}(c.Request.Body)
 			fmt.Println(body.String())
 
 			reader := bytes.NewReader(body.Bytes())
@@ -54,7 +52,12 @@ func ArchiveData() gin.HandlerFunc {
 			if err != nil {
 				return
 			}
-			defer c.Request.Body.Close()
+			defer func(Body io.ReadCloser) {
+				err := Body.Close()
+				if err != nil {
+
+				}
+			}(c.Request.Body)
 			fmt.Println(body.String())
 			c.Set("Body", body.String())
 		}
@@ -62,119 +65,52 @@ func ArchiveData() gin.HandlerFunc {
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
-		if strings.Contains(acceptsType, "gzipp") {
-			fmt.Println("dasdsdsadasdasdasdasdasdsa")
+		respT, okT := c.Get("responseType")
+		respType := respT.(string)
+		respS, okS := c.Get("responseStatus")
+		respStatus := respS.(int)
+		respB, okB := c.Get("responseBody")
+		respBody := respB.(*bytes.Buffer)
+		if !(okT && okB && okS) {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		if strings.Contains(acceptsType, "gzip") {
 			c.Writer.Header().Set("Content-Encoding", "gzip")
 
-			data := wb.Body
-			fmt.Println("string before compression\t", data.String())
-			wb.Body.Reset()
+			fmt.Println("string before compression\t", respBody.String())
 
 			buffer := bytes.Buffer{}
-
 			gz := gzip.NewWriter(&buffer)
-			_, _ = gz.Write(data.Bytes())
+			_, _ = gz.Write(respBody.Bytes())
 			err := gz.Close()
-
+			if err != nil {
+				return
+			}
 			fmt.Println("bytes after compression  \t", buffer.Bytes())
-			if err != nil {
-				return
+			fmt.Println("String after compression  \t", buffer.String())
+
+			c.Data(respStatus, "application/gzip", buffer.Bytes())
+		} else {
+			switch respType {
+			case "json":
+				//FIXME only known structure so no problems, need to be dynamic
+				newResBody := struct {
+					Result string `json:"result"`
+				}{}
+				err := json.Unmarshal(respBody.Bytes(), &newResBody)
+				if err != nil {
+					return
+				}
+				c.IndentedJSON(respStatus, newResBody)
+			case "text":
+				c.String(respStatus, respBody.String())
+			case "none":
+				c.Status(respStatus)
+			case "redirect":
+				c.Redirect(http.StatusTemporaryRedirect, respBody.String())
+
 			}
-			defer gz.Close()
-
-			_, err = wb.Write(buffer.Bytes())
-			if err != nil {
-				return
-			}
-
-			fmt.Println("string after compression\t", wb.Body.String())
-
 		}
-		wb.Flush()
 	}
-}
-
-type ResponseBuffer struct {
-	Response gin.ResponseWriter // the actual ResponseWriter to flush to
-	status   int                // the HTTP response code from WriteHeader
-	Body     *bytes.Buffer      // the response content body
-	Flushed  bool
-}
-
-func (w *ResponseBuffer) Pusher() http.Pusher {
-	return w.Response.Pusher()
-}
-
-func NewResponseBuffer(w gin.ResponseWriter) *ResponseBuffer {
-	return &ResponseBuffer{
-		Response: w, status: 200, Body: &bytes.Buffer{},
-	}
-}
-
-func (w *ResponseBuffer) Header() http.Header {
-	return w.Response.Header() // use the actual response header
-}
-
-func (w *ResponseBuffer) Write(buf []byte) (int, error) {
-
-	w.Body.Write(buf)
-	return len(buf), nil
-}
-
-func (w *ResponseBuffer) WriteString(s string) (n int, err error) {
-	//w.WriteHeaderNow()
-	//n, err = io.WriteString(w.ResponseWriter, s)
-	//w.size += n
-	n, err = w.Write([]byte(s))
-	return
-}
-
-func (w *ResponseBuffer) Written() bool {
-	return w.Body.Len() != -1
-}
-
-func (w *ResponseBuffer) WriteHeader(status int) {
-	w.status = status
-}
-
-func (w *ResponseBuffer) WriteHeaderNow() {
-	//if !w.Written() {
-	//	w.size = 0
-	//	w.ResponseWriter.WriteHeader(w.status)
-	//}
-}
-
-func (w *ResponseBuffer) Status() int {
-	return w.status
-}
-
-func (w *ResponseBuffer) Size() int {
-	return w.Body.Len()
-}
-
-func (w *ResponseBuffer) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	//if w.size < 0 {
-	//	w.size = 0
-	//}
-	return w.Response.(http.Hijacker).Hijack()
-}
-
-func (w *ResponseBuffer) CloseNotify() <-chan bool {
-	var k <-chan bool
-	return k
-}
-
-func (w *ResponseBuffer) Flush() {
-	if w.Flushed {
-		return
-	}
-	w.Response.WriteHeader(w.status)
-	if w.Body.Len() > 0 {
-		_, err := w.Response.Write(w.Body.Bytes())
-		if err != nil {
-			panic(err)
-		}
-		w.Body.Reset()
-	}
-	w.Flushed = true
 }
