@@ -35,7 +35,6 @@ func PostURL(ctx *gin.Context) {
 	//buf := make([]byte, 1024)
 	//var body bufio.Reader
 	data, _ := ctx.Get("Body")
-	fmt.Println(data)
 	inputURL := data.(string)
 	_, err := url.Parse(inputURL)
 	if err != nil {

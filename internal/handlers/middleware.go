@@ -33,6 +33,7 @@ func ArchiveData() gin.HandlerFunc {
 			if err != nil {
 				return
 			}
+			defer c.Request.Body.Close()
 			fmt.Println(body.String())
 
 			reader := bytes.NewReader(body.Bytes())
@@ -50,31 +51,44 @@ func ArchiveData() gin.HandlerFunc {
 			fmt.Printf("ungzipped:%v", result)
 			c.Set("Body", result)
 		} else {
-			var buf []byte
-			data, _ := c.Request.Body.Read(buf)
-			fmt.Println(string(buf))
-			c.Set("Body", string(buf[0:data]))
+			body := &bytes.Buffer{}
+			_, err := body.ReadFrom(c.Request.Body)
+			if err != nil {
+				return
+			}
+			defer c.Request.Body.Close()
+			fmt.Println(body.String())
+			c.Set("Body", body.String())
 		}
 
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
-		fmt.Println(strings.Contains(acceptsType, "gzip"))
 		if strings.Contains(acceptsType, "gzip") {
+			fmt.Println("dasdsdsadasdasdasdasdasdsa")
 			c.Writer.Header().Set("Content-Encoding", "gzip")
 
 			data := wb.Body.Bytes()
+			fmt.Println(string(data))
 			wb.Body.Reset()
 
-			gz, err := gzip.NewWriterLevel(wb.Response, gzip.BestSpeed)
-			gz.Write(data)
-			defer gz.Close()
+			buffer := &bytes.Buffer{}
 
+			gz, err := gzip.NewWriterLevel(buffer, gzip.BestSpeed)
+			//var buf1 []byte
+			_, err = gz.Write(data)
+			fmt.Println(buffer.Bytes())
 			if err != nil {
-				io.WriteString(c.Writer, err.Error())
 				return
 			}
 			defer gz.Close()
+
+			_, err = wb.Write(buffer.Bytes())
+			if err != nil {
+				return
+			}
+
+			fmt.Println(wb.Body.String())
 
 		}
 		wb.Flush()
