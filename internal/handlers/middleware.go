@@ -27,7 +27,8 @@ func ArchiveData() gin.HandlerFunc {
 			defer func(Body io.ReadCloser) {
 				err := Body.Close()
 				if err != nil {
-
+					c.Status(http.StatusBadRequest)
+					return
 				}
 			}(c.Request.Body)
 			fmt.Println(body.String())
@@ -55,7 +56,8 @@ func ArchiveData() gin.HandlerFunc {
 			defer func(Body io.ReadCloser) {
 				err := Body.Close()
 				if err != nil {
-
+					c.Status(http.StatusBadRequest)
+					return
 				}
 			}(c.Request.Body)
 			fmt.Println(body.String())
@@ -75,7 +77,9 @@ func ArchiveData() gin.HandlerFunc {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-		if strings.Contains(acceptsType, "gzip") {
+
+		switch {
+		case (respType == "json" || respType == "text") && strings.Contains(acceptsType, "gzip"):
 			c.Writer.Header().Set("Content-Encoding", "gzip")
 
 			fmt.Println("string before compression\t", respBody.String())
@@ -91,26 +95,28 @@ func ArchiveData() gin.HandlerFunc {
 			fmt.Println("String after compression  \t", buffer.String())
 
 			c.Data(respStatus, "application/gzip", buffer.Bytes())
-		} else {
-			switch respType {
-			case "json":
-				//FIXME only known structure so no problems, need to be dynamic
-				newResBody := struct {
-					Result string `json:"result"`
-				}{}
-				err := json.Unmarshal(respBody.Bytes(), &newResBody)
-				if err != nil {
-					return
-				}
-				c.IndentedJSON(respStatus, newResBody)
-			case "text":
-				c.String(respStatus, respBody.String())
-			case "none":
-				c.Status(respStatus)
-			case "redirect":
-				c.Redirect(http.StatusTemporaryRedirect, respBody.String())
+			return
 
+		case respType == "redirect":
+			c.Redirect(http.StatusTemporaryRedirect, respBody.String())
+			return
+		case respType == "json":
+			//FIXME only known structure so no problems, need to be dynamic
+			newResBody := struct {
+				Result string `json:"result"`
+			}{}
+			err := json.Unmarshal(respBody.Bytes(), &newResBody)
+			if err != nil {
+				return
 			}
+			c.IndentedJSON(respStatus, newResBody)
+			return
+		case respType == "text":
+			c.String(respStatus, respBody.String())
+			return
+		case respType == "none":
+			c.Status(respStatus)
+			return
 		}
 	}
 }

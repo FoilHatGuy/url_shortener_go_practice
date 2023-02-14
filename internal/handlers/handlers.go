@@ -96,6 +96,10 @@ func PostAPIURL(ctx *gin.Context) {
 	}{result.String()}
 	var output []byte
 	output, err = json.Marshal(newResBody)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
 	fmt.Println(output)
 
 	ctx.Set("responseType", "json")
