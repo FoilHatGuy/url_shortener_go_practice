@@ -53,6 +53,7 @@ func PostURL(ctx *gin.Context) {
 	fmt.Printf("Short url: %s\n\n", result.String())
 
 	ctx.Writer.WriteHeader(http.StatusCreated)
+	ctx.Header("Content-Type", "application/json")
 	ctx.Writer.Write([]byte(result.String()))
 }
 

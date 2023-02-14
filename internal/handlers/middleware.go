@@ -20,10 +20,8 @@ type customWriter struct {
 func ArchiveData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var wb *ResponseBuffer
-		if w, ok := c.Writer.(gin.ResponseWriter); ok {
-			wb = NewResponseBuffer(w)
-			c.Writer = wb
-		}
+		wb = NewResponseBuffer(c.Writer)
+		c.Writer = wb
 
 		contentType := c.GetHeader("Content-Type")
 		fmt.Println(contentType)
@@ -162,7 +160,8 @@ func (w *ResponseBuffer) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 }
 
 func (w *ResponseBuffer) CloseNotify() <-chan bool {
-	return w.Response.(http.CloseNotifier).CloseNotify()
+	var k <-chan bool
+	return k
 }
 
 func (w *ResponseBuffer) Flush() {
