@@ -128,9 +128,6 @@ func TestReceiveURL(t *testing.T) {
 				//res, err = http.Post(tt.target, "text/plain; charset=utf-8", body)
 				res, err = client.Do(r)
 				if err != nil {
-					panic(err)
-				}
-				if err != nil {
 					return
 				}
 				defer res.Body.Close()
