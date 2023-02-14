@@ -64,20 +64,20 @@ func ArchiveData() gin.HandlerFunc {
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
-		if strings.Contains(acceptsType, "gzppip") {
+		if strings.Contains(acceptsType, "gzipp") {
 			fmt.Println("dasdsdsadasdasdasdasdasdsa")
 			c.Writer.Header().Set("Content-Encoding", "gzip")
 
 			data := wb.Body
 			fmt.Println("string before compression\t", data.String())
 			wb.Body.Reset()
-			fmt.Println("string before compression\t", data.String())
 
-			buffer := &bytes.Buffer{}
+			buffer := bytes.Buffer{}
 
-			gz := gzip.NewWriter(buffer)
-			//var buf1 []byte
-			_, err := gz.Write(data.Bytes())
+			gz := gzip.NewWriter(&buffer)
+			_, _ = gz.Write(data.Bytes())
+			err := gz.Close()
+
 			fmt.Println("bytes after compression  \t", buffer.Bytes())
 			if err != nil {
 				return
@@ -105,11 +105,6 @@ type ResponseBuffer struct {
 
 func (w *ResponseBuffer) Pusher() http.Pusher {
 	return w.Response.Pusher()
-}
-func (w *ResponseBuffer) Purge() []byte {
-	buff := w.Body.Bytes()
-	w.Body = &bytes.Buffer{}
-	return buff
 }
 
 func NewResponseBuffer(w gin.ResponseWriter) *ResponseBuffer {

@@ -8,19 +8,34 @@ import (
 	"log"
 	"net/http"
 	"shortener/internal/cfg"
+	"shortener/internal/storage"
 	"testing"
+	"time"
 )
 
 func Run() {
 	r := gin.Default()
-
-	r.GET("/:shortURL", GetShortURL)
-	r.POST("/", PostURL)
-	api := r.Group("/api")
+	baseRouter := r.Group("")
 	{
-		api.POST("/shorten", PostAPIURL)
+		baseRouter.Use(ArchiveData())
+		baseRouter.GET("/:shortURL", GetShortURL)
+		baseRouter.POST("/", PostURL)
+		api := baseRouter.Group("/api")
+		{
+			api.POST("/shorten", PostAPIURL)
+		}
 	}
-	log.Fatal(r.Run())
+
+	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
+	storage.Database.LoadData()
+	go func() {
+		for range t.C {
+			//fmt.Print("AUTOSAVE\n")
+			storage.Database.SaveData()
+		}
+	}()
+	fmt.Println("SERVER LISTENING ON", cfg.Server.Address)
+	log.Fatal(r.Run(cfg.Server.Address))
 }
 
 func TestReceiveURL(t *testing.T) {
