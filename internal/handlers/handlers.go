@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -30,18 +29,17 @@ func GetShortURL(ctx *gin.Context) {
 
 	//fmt.Printf("get complete\n\n")
 	ctx.Redirect(307, result)
+
 }
 
 func PostURL(ctx *gin.Context) {
-	data, _ := ctx.Get("Body")
-	if data == nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	inputURL := data.(string)
+	buf := make([]byte, 1024)
+	num, _ := ctx.Request.Body.Read(buf)
+	inputURL := string(buf[0:num])
+
 	_, err := url.Parse(inputURL)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	shortURL := storage.Database.AddURL(inputURL)
@@ -52,32 +50,21 @@ func PostURL(ctx *gin.Context) {
 	result = result.JoinPath(shortURL)
 	fmt.Printf("Short url: %s\n\n", result.String())
 
-	ctx.Writer.WriteHeader(http.StatusCreated)
-	ctx.Header("Content-Type", "application/json")
-	ctx.Writer.Write([]byte(result.String()))
+	ctx.String(http.StatusCreated, "%v", result.String())
 }
 
 func PostAPIURL(ctx *gin.Context) {
-	data, _ := ctx.Get("Body")
-	if data == nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	inputURL := data.(string)
-	fmt.Println(inputURL)
-
-	type jsonType struct {
+	var newReqBody struct {
 		URL string `json:"url"`
 	}
-	var newReqBody jsonType
-	if err := json.Unmarshal([]byte(inputURL), &newReqBody); err != nil {
+
+	if err := ctx.BindJSON(&newReqBody); err != nil {
 		return
 	}
-	fmt.Println("AAA", newReqBody.URL)
 
 	_, err := url.Parse(newReqBody.URL)
 	if err != nil {
-		ctx.Writer.WriteHeader(http.StatusBadRequest)
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	shortURL := storage.Database.AddURL(newReqBody.URL)
@@ -91,8 +78,5 @@ func PostAPIURL(ctx *gin.Context) {
 	newResBody := struct {
 		Result string `json:"result"`
 	}{result.String()}
-	var output []byte
-	output, err = json.Marshal(newResBody)
-	ctx.Writer.WriteHeader(http.StatusCreated)
-	ctx.Writer.Write(output)
+	ctx.IndentedJSON(http.StatusCreated, newResBody)
 }
