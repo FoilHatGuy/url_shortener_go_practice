@@ -17,7 +17,8 @@ func ArchiveData() gin.HandlerFunc {
 		c.Set("responseType", "")
 		c.Set("responseStatus", 200)
 		c.Set("responseBody", bytes.NewBuffer([]byte{}))
-		fmt.Println(contentType)
+		fmt.Println("received:", contentType)
+
 		if strings.Contains(contentType, "gzip") {
 			body := &bytes.Buffer{}
 			_, err := body.ReadFrom(c.Request.Body)
@@ -67,7 +68,7 @@ func ArchiveData() gin.HandlerFunc {
 		c.Next()
 
 		acceptsType := c.GetHeader("Accept-Encoding")
-		fmt.Println(acceptsType)
+		fmt.Println("accepts:", acceptsType)
 		respT, okT := c.Get("responseType")
 		respType := respT.(string)
 		respS, okS := c.Get("responseStatus")
