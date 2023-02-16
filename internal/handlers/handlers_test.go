@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"bytes"
+	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -9,6 +11,7 @@ import (
 	"net/http"
 	"shortener/internal/cfg"
 	"shortener/internal/storage"
+	"strings"
 	"testing"
 	"time"
 )
@@ -17,7 +20,8 @@ func Run() {
 	r := gin.Default()
 	baseRouter := r.Group("")
 	{
-		baseRouter.Use(ArchiveData())
+		baseRouter.Use(Gzip())
+		baseRouter.Use(Gunzip())
 		baseRouter.GET("/:shortURL", GetShortURL)
 		baseRouter.POST("/", PostURL)
 		api := baseRouter.Group("/api")
@@ -47,17 +51,19 @@ func TestReceiveURL(t *testing.T) {
 		contentType string
 	}
 	tests := []struct {
-		name   string
-		method string
-		body   string
-		target string
-		want   want
+		encoding string
+		name     string
+		method   string
+		body     string
+		target   string
+		want     want
 	}{
 		{
-			name:   "Post req",
-			method: "POST",
-			body:   "http://a30ac6lti.biz/fc6pql9n/duut2ohnkaja",
-			target: "http://localhost:8080/",
+			name:     "Post req",
+			method:   "POST",
+			body:     "http://a30ac6lti.biz/fc6pql9n/duut2ohnkaja",
+			target:   "http://localhost:8080/",
+			encoding: "none",
 			want: want{
 				acceptType:  "text/plain",
 				code:        201,
@@ -67,10 +73,11 @@ func TestReceiveURL(t *testing.T) {
 		},
 		// TODO: to complete this autotoest data should be stored on drive
 		{
-			name:   "Get req",
-			method: "GET",
-			body:   "",
-			target: "http://localhost:8080/XVlBzgbaiC",
+			name:     "Get req",
+			method:   "GET",
+			body:     "",
+			target:   "http://localhost:8080/XVlBzgbaiC",
+			encoding: "none",
 			want: want{
 				acceptType:  "text/plain",
 				code:        200,
@@ -79,10 +86,37 @@ func TestReceiveURL(t *testing.T) {
 			},
 		},
 		{
-			name:   "no such url",
-			method: "GET",
-			body:   "",
-			target: "http://localhost:8080/nosuchurl_",
+			name:     "Post API req",
+			method:   "POST",
+			body:     "{\"url\":\"http://google.com\"}",
+			target:   "http://localhost:8080/api/shorten",
+			encoding: "none",
+			want: want{
+				acceptType:  "text/plain",
+				code:        201,
+				response:    "{\n    \"result\": \"http://localhost:8080/MRAjWwhTHc\"\n}",
+				contentType: "application/json; charset=utf-8",
+			},
+		},
+		{
+			name:     "Get from API",
+			method:   "GET",
+			body:     "",
+			target:   "http://localhost:8080/MRAjWwhTHc",
+			encoding: "none",
+			want: want{
+				acceptType:  "text/plain",
+				code:        200,
+				response:    "",
+				contentType: "",
+			},
+		},
+		{
+			name:     "no such url",
+			method:   "GET",
+			body:     "",
+			target:   "http://localhost:8080/nosuchurl_",
+			encoding: "none",
 			want: want{
 				acceptType:  "text/plain",
 				code:        400,
@@ -91,10 +125,11 @@ func TestReceiveURL(t *testing.T) {
 			},
 		},
 		{
-			name:   "url too long to be valid",
-			method: "GET",
-			body:   "",
-			target: "http://localhost:8080/urltoolongtobevalid",
+			name:     "url too long to be valid",
+			method:   "GET",
+			body:     "",
+			target:   "http://localhost:8080/urltoolongtobevalid",
+			encoding: "none",
 			want: want{
 				acceptType:  "text/plain",
 				code:        400,
@@ -104,7 +139,9 @@ func TestReceiveURL(t *testing.T) {
 		},
 	}
 	go Run()
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: noRedirect,
+	}
 	for _, tt := range tests {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,8 +159,25 @@ func TestReceiveURL(t *testing.T) {
 				defer res.Body.Close()
 			} else if tt.method == "POST" {
 				var err error
+				if tt.encoding == "gzip" {
+					body := bytes.NewBuffer([]byte{})
+					gzipR := gzip.NewWriter(body)
+					fmt.Printf("%x\n", []byte(tt.body))
+					if err != nil {
+						return
+					}
+					_, err = gzipR.Write([]byte(tt.body))
+					fmt.Printf("%x\n", body.Bytes())
+					if err != nil {
+						return
+					}
+					defer gzipR.Close()
+				}
 				body := bytes.NewReader([]byte(tt.body))
 				r, _ := http.NewRequest("POST", tt.target, body)
+				if tt.encoding == "gzip" {
+					r.Header.Add("Content-Encoding", tt.encoding)
+				}
 				r.Header.Add("Accept-Encoding", tt.want.acceptType)
 				//res, err = http.Post(tt.target, "text/plain; charset=utf-8", body)
 				res, err = client.Do(r)
@@ -137,11 +191,23 @@ func TestReceiveURL(t *testing.T) {
 			}
 
 			// получаем и проверяем тело запроса
-			resBody, err := io.ReadAll(res.Body)
-			fmt.Print(string(resBody))
-			if err != nil {
-				t.Fatal(err)
+			var resBody []byte
+			contentType := res.Header.Get("Content-Encoding")
+			if !strings.Contains(contentType, "gzip") {
+				fmt.Println("Reading body")
+				resBody, _ = io.ReadAll(res.Body)
+			} else {
+				fmt.Println("Unpacking body")
+				gzipR, err := gzip.NewReader(res.Body)
+				if err != nil {
+					return
+				}
+				defer gzipR.Close()
+				resBody, err = io.ReadAll(gzipR)
 			}
+
+			fmt.Printf("RECEIVED\nBODY:\t%s\nSTATUS:\t%v\n", string(resBody), res.StatusCode)
+
 			if string(resBody) != tt.want.response {
 				t.Errorf("Expected body %s, got %s", tt.want.response, string(resBody))
 			}
@@ -150,6 +216,12 @@ func TestReceiveURL(t *testing.T) {
 			if res.Header.Get("Content-Type") != tt.want.contentType {
 				t.Errorf("Expected Content-Type %s, got %s", tt.want.contentType, res.Header.Get("Content-Type"))
 			}
+
 		})
+		time.Sleep(1 * time.Second)
 	}
+}
+
+func noRedirect(req *http.Request, via []*http.Request) error {
+	return errors.New("Don't redirect!")
 }

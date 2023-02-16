@@ -14,7 +14,8 @@ func Run() {
 	r := gin.Default()
 	baseRouter := r.Group("")
 	{
-		baseRouter.Use(handlers.ArchiveData())
+		baseRouter.Use(handlers.Gzip())
+		baseRouter.Use(handlers.Gunzip())
 		baseRouter.GET("/:shortURL", handlers.GetShortURL)
 		baseRouter.POST("/", handlers.PostURL)
 		api := baseRouter.Group("/api")
