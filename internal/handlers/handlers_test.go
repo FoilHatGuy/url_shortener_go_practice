@@ -71,20 +71,6 @@ func TestReceiveURL(t *testing.T) {
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
-		// TODO: to complete this autotoest data should be stored on drive
-		{
-			name:     "Get req",
-			method:   "GET",
-			body:     "",
-			target:   "http://localhost:8080/XVlBzgbaiC",
-			encoding: "none",
-			want: want{
-				acceptType:  "text/plain",
-				code:        200,
-				response:    "",
-				contentType: "",
-			},
-		},
 		{
 			name:     "Post API req",
 			method:   "POST",
@@ -100,6 +86,19 @@ func TestReceiveURL(t *testing.T) {
 		},
 		{
 			name:     "Get from API",
+			method:   "GET",
+			body:     "",
+			target:   "http://localhost:8080/XVlBzgbaiC",
+			encoding: "none",
+			want: want{
+				acceptType:  "text/plain",
+				code:        200,
+				response:    "",
+				contentType: "",
+			},
+		},
+		{
+			name:     "Get req",
 			method:   "GET",
 			body:     "",
 			target:   "http://localhost:8080/XVlBzgbaiC",
@@ -168,9 +167,6 @@ func TestReceiveURL(t *testing.T) {
 						return
 					}
 					fmt.Printf("%x\n", body.Bytes())
-					if err != nil {
-						return
-					}
 					defer gzipR.Close()
 				}
 				body := bytes.NewReader([]byte(tt.body))
