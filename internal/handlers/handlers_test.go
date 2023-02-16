@@ -94,7 +94,7 @@ func TestReceiveURL(t *testing.T) {
 			want: want{
 				acceptType:  "text/plain",
 				code:        201,
-				response:    "{\n    \"result\": \"http://localhost:8080/MRAjWwhTHc\"\n}",
+				response:    "{\n    \"result\": \"http://localhost:8080/XVlBzgbaiC\"\n}",
 				contentType: "application/json; charset=utf-8",
 			},
 		},
@@ -102,7 +102,7 @@ func TestReceiveURL(t *testing.T) {
 			name:     "Get from API",
 			method:   "GET",
 			body:     "",
-			target:   "http://localhost:8080/MRAjWwhTHc",
+			target:   "http://localhost:8080/XVlBzgbaiC",
 			encoding: "none",
 			want: want{
 				acceptType:  "text/plain",
@@ -163,10 +163,10 @@ func TestReceiveURL(t *testing.T) {
 					body := bytes.NewBuffer([]byte{})
 					gzipR := gzip.NewWriter(body)
 					fmt.Printf("%x\n", []byte(tt.body))
+					_, err = gzipR.Write([]byte(tt.body))
 					if err != nil {
 						return
 					}
-					_, err = gzipR.Write([]byte(tt.body))
 					fmt.Printf("%x\n", body.Bytes())
 					if err != nil {
 						return
@@ -203,7 +203,7 @@ func TestReceiveURL(t *testing.T) {
 					return
 				}
 				defer gzipR.Close()
-				resBody, err = io.ReadAll(gzipR)
+				resBody, _ = io.ReadAll(gzipR)
 			}
 
 			fmt.Printf("RECEIVED\nBODY:\t%s\nSTATUS:\t%v\n", string(resBody), res.StatusCode)
