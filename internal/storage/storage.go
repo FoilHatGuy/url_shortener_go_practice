@@ -8,12 +8,24 @@ import (
 	"path/filepath"
 	"shortener/internal/cfg"
 	"shortener/internal/urlgenerator"
+	"time"
 )
 
 type dataT map[string]string
 
 type storage struct {
 	Data dataT `json:"data"`
+}
+
+func RunAutosave() {
+	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
+	Database.LoadData()
+	go func() {
+		for range t.C {
+			//fmt.Print("AUTOSAVE\n")
+			Database.SaveData()
+		}
+	}()
 }
 
 type DatabaseORM interface {
@@ -43,14 +55,18 @@ func (s storage) SaveData() {
 	}
 }
 func (s storage) LoadData() {
-	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
-		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
+	validateFolder()
+	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
+		err := json.Unmarshal(file, &s.Data)
 		if err != nil {
 			return
 		}
 	}
-	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
-		err := json.Unmarshal(file, &s.Data)
+}
+
+func validateFolder() {
+	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
+		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
 		if err != nil {
 			return
 		}

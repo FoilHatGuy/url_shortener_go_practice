@@ -1,15 +1,17 @@
-package handlers
+package server
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"net/url"
 	"shortener/internal/cfg"
 	"shortener/internal/storage"
 )
 
-func GetShortURL(ctx *gin.Context) {
+func getShortURL(ctx *gin.Context) {
 
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
 	inputURL := ctx.Params.ByName("shortURL")
@@ -32,28 +34,22 @@ func GetShortURL(ctx *gin.Context) {
 
 }
 
-func PostURL(ctx *gin.Context) {
-	buf := make([]byte, 1024)
-	num, _ := ctx.Request.Body.Read(buf)
-	inputURL := string(buf[0:num])
-
-	_, err := url.Parse(inputURL)
+func postURL(ctx *gin.Context) {
+	buf, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
 		return
 	}
-	shortURL := storage.Database.AddURL(inputURL)
+	inputURL := string(buf)
 
-	fmt.Printf("Input url: %s\n", inputURL)
+	result, err := shorten(inputURL)
+	if err != nil {
+		ctx.Status(http.StatusBadRequest)
+	}
 
-	result, _ := url.Parse(cfg.Router.BaseURL)
-	result = result.JoinPath(shortURL)
-	fmt.Printf("Short url: %s\n\n", result.String())
-
-	ctx.String(http.StatusCreated, "%v", result.String())
+	ctx.String(http.StatusCreated, "%v", result)
 }
 
-func PostAPIURL(ctx *gin.Context) {
+func postAPIURL(ctx *gin.Context) {
 	var newReqBody struct {
 		URL string `json:"url"`
 	}
@@ -62,21 +58,29 @@ func PostAPIURL(ctx *gin.Context) {
 		return
 	}
 
-	_, err := url.Parse(newReqBody.URL)
+	result, err := shorten(newReqBody.URL)
 	if err != nil {
 		ctx.Status(http.StatusBadRequest)
-		return
 	}
-	shortURL := storage.Database.AddURL(newReqBody.URL)
-
-	fmt.Printf("Input url: %s\n", newReqBody.URL)
-	fmt.Printf("Short url: %s\n\n", shortURL)
-
-	result, _ := url.Parse(cfg.Router.BaseURL)
-	result = result.JoinPath(shortURL)
 
 	newResBody := struct {
 		Result string `json:"result"`
-	}{result.String()}
+	}{result}
 	ctx.IndentedJSON(http.StatusCreated, newResBody)
+}
+
+func shorten(inputURL string) (string, error) {
+
+	_, err := url.Parse(inputURL)
+	if err != nil {
+		return "", errors.New("bad URL")
+	}
+	shortURL := storage.Database.AddURL(inputURL)
+
+	fmt.Printf("Input url: %s\n", inputURL)
+	fmt.Printf("Short url: %s\n\n", shortURL)
+
+	result, _ := url.Parse(cfg.Server.BaseURL)
+	result = result.JoinPath(shortURL)
+	return result.String(), nil
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"shortener/internal/cfg"
 	"shortener/internal/server"
+	"shortener/internal/storage"
 )
 
 func init() {
@@ -11,6 +11,6 @@ func init() {
 }
 
 func main() {
-	fmt.Println(cfg.Server.Address)
+	storage.RunAutosave()
 	server.Run()
 }

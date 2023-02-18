@@ -5,33 +5,22 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"shortener/internal/cfg"
-	"shortener/internal/handlers"
-	"shortener/internal/storage"
-	"time"
 )
 
 func Run() {
 	r := gin.Default()
 	baseRouter := r.Group("")
 	{
-		baseRouter.Use(handlers.Gzip())
-		baseRouter.Use(handlers.Gunzip())
-		baseRouter.GET("/:shortURL", handlers.GetShortURL)
-		baseRouter.POST("/", handlers.PostURL)
+		baseRouter.Use(Gzip())
+		baseRouter.Use(Gunzip())
+		baseRouter.GET("/:shortURL", getShortURL)
+		baseRouter.POST("/", postURL)
 		api := baseRouter.Group("/api")
 		{
-			api.POST("/shorten", handlers.PostAPIURL)
+			api.POST("/shorten", postAPIURL)
 		}
 	}
 
-	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
-	storage.Database.LoadData()
-	go func() {
-		for range t.C {
-			//fmt.Print("AUTOSAVE\n")
-			storage.Database.SaveData()
-		}
-	}()
 	fmt.Println("SERVER LISTENING ON", cfg.Server.Address)
 	log.Fatal(r.Run(cfg.Server.Address))
 }

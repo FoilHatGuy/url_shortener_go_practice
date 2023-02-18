@@ -7,8 +7,6 @@ type shortCfg struct {
 type serverCfg struct {
 	Address string
 	Port    string
-}
-type routerCfg struct {
 	BaseURL string
 }
 type storageCfg struct {
