@@ -38,13 +38,8 @@ type DatabaseORM interface {
 var Database DatabaseORM = storage{Data: make(dataT)}
 
 func (s storage) SaveData() {
-	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
-		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
-		if err != nil {
-			return
-		}
-	}
-	//fmt.Print("MARSHALLING\n")
+	validateFolder()
+	fmt.Print("SAVING\n")
 	if data, err := json.Marshal(s.Data); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
 		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
@@ -56,8 +51,10 @@ func (s storage) SaveData() {
 }
 func (s storage) LoadData() {
 	validateFolder()
+	fmt.Printf("DATA LOADING\n")
 	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
 		err := json.Unmarshal(file, &s.Data)
+		fmt.Printf("LOADED %d URLS\n", len(s.Data))
 		if err != nil {
 			return
 		}
@@ -66,6 +63,7 @@ func (s storage) LoadData() {
 
 func validateFolder() {
 	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
+		fmt.Println("FOLDER DOESN'T EXIST, ")
 		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
 		if err != nil {
 			return

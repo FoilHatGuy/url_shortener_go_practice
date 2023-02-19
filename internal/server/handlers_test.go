@@ -109,6 +109,7 @@ func TestReceiveURL(t *testing.T) {
 		},
 	}
 	go Run()
+	go cfg.Initialize()
 	client := &http.Client{
 		CheckRedirect: noRedirect,
 	}

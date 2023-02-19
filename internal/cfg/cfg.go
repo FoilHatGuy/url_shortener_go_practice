@@ -19,7 +19,7 @@ var (
 func Initialize() {
 	flag.StringVar(&serverAdress, "a", "localhost:8080", "help message for flagname")
 	flag.StringVar(&baseURL, "b", "http://localhost:8080", "help message for flagname")
-	flag.StringVar(&fileStoragePath, "f", "./data", "help message for flagname")
+	flag.StringVar(&fileStoragePath, "f", "./data/data", "help message for flagname")
 	flag.Parse()
 
 	Shortener = shortCfg{
@@ -33,7 +33,7 @@ func Initialize() {
 	}
 	Storage = storageCfg{
 		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(10).Int(),
-		SavePath:         genv.Key("FILE_STORAGE_PATH").Default("./data").String(),
+		SavePath:         genv.Key("FILE_STORAGE_PATH").Default(fileStoragePath).String(),
 		StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
 	}
 
