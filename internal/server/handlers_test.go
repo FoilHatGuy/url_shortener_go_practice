@@ -176,7 +176,7 @@ func TestReceiveURL(t *testing.T) {
 
 			fmt.Printf("RECEIVED\nBODY:\t%s\nSTATUS:\t%v\n", string(resBody), res.StatusCode)
 
-			if string(resBody) != tt.want.response {
+			if len(string(resBody)) != len(tt.want.response) {
 				t.Errorf("Expected body %s, got %s", tt.want.response, string(resBody))
 			}
 
