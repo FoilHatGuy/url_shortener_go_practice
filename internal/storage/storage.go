@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"shortener/internal/cfg"
 	"shortener/internal/urlgenerator"
-	"time"
 )
 
 type dataT map[string]string
@@ -18,14 +17,14 @@ type storage struct {
 }
 
 func RunAutosave() {
-	t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
+	//t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
 	Database.LoadData()
-	go func() {
-		for range t.C {
-			//fmt.Print("AUTOSAVE\n")
-			Database.SaveData()
-		}
-	}()
+	//go func() {
+	//	for range t.C {
+	//		//fmt.Print("AUTOSAVE\n")
+	//		Database.SaveData()
+	//	}
+	//}()
 }
 
 type DatabaseORM interface {
@@ -87,7 +86,6 @@ func (s storage) GetURL(url string) (string, error) {
 		s.Data = make(dataT)
 	}
 	val, ok := s.Data[url]
-	fmt.Print(ok, "\n")
 	if ok {
 		return val, nil
 	}
