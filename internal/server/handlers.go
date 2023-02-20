@@ -15,7 +15,7 @@ func getShortURL(ctx *gin.Context) {
 
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
 	inputURL := ctx.Params.ByName("shortURL")
-	fmt.Printf("Input url: %q\n\n", inputURL)
+	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
 		ctx.Status(http.StatusBadRequest)
 		return

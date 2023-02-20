@@ -6,11 +6,11 @@ import (
 	"shortener/internal/storage"
 )
 
-func init() {
-	cfg.Initialize()
-}
+//func init() {
+//}
 
 func main() {
+	cfg.Initialize()
 	storage.RunAutosave()
 	server.Run()
 }
