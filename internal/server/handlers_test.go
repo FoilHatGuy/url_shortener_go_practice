@@ -14,7 +14,6 @@ import (
 )
 
 func TestReceiveURL(t *testing.T) {
-	cfg.Initialize()
 	type want struct {
 		acceptType  string
 		code        int
@@ -108,8 +107,8 @@ func TestReceiveURL(t *testing.T) {
 			},
 		},
 	}
+	cfg.Initialize()
 	go Run()
-	go cfg.Initialize()
 	client := &http.Client{
 		CheckRedirect: noRedirect,
 	}
