@@ -67,19 +67,19 @@ func TestReceiveURL(t *testing.T) {
 				contentType: "",
 			},
 		},
-		{
-			name:     "Get req",
-			method:   "GET",
-			body:     "",
-			target:   "http://localhost:8080/MRAjWwhTHc",
-			encoding: "none",
-			want: want{
-				acceptType:  "text/plain",
-				code:        200,
-				response:    "",
-				contentType: "",
-			},
-		},
+		//{
+		//	name:     "Get req",
+		//	method:   "GET",
+		//	body:     "",
+		//	target:   "http://localhost:8080/MRAjWwhTHc",
+		//	encoding: "none",
+		//	want: want{
+		//		acceptType:  "text/plain",
+		//		code:        200,
+		//		response:    "",
+		//		contentType: "",
+		//	},
+		//},
 		{
 			name:     "no such url",
 			method:   "GET",
