@@ -50,7 +50,7 @@ func TestReceiveURL(t *testing.T) {
 			want: want{
 				acceptType:  "text/plain",
 				code:        201,
-				response:    "{\n    \"result\": \"http://localhost:8080/MRAjWwhTHc\"\n}",
+				response:    "{\n    \"result\": \"http://localhost:8080/XVlBzgbaiC\"\n}",
 				contentType: "application/json; charset=utf-8",
 			},
 		},
