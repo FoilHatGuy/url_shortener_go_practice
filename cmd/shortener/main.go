@@ -1,26 +1,16 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
-	"log"
-	"net/http"
-	"shortener/internal/handlers"
-	"strconv"
+	"shortener/internal/cfg"
+	"shortener/internal/server"
+	"shortener/internal/storage"
 )
 
-const ( //config
-	urlLength = 10
-	host      = "localhost"
-	port      = 8080
-)
+//func init() {
+//}
 
 func main() {
-	r := chi.NewRouter()
-
-	r.Post("/", handlers.SendURL)
-	r.Get("/{shortURL:[a-zA-Z]{"+strconv.FormatInt(urlLength, 10)+"}}", handlers.ReceiveURL)
-
-	//http.HandleFunc("/", handlers.ReceiveURL)
-
-	log.Fatal(http.ListenAndServe("localhost:8080", r))
+	cfg.Initialize()
+	storage.RunAutosave()
+	server.Run()
 }
