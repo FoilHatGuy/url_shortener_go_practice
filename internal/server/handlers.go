@@ -37,6 +37,7 @@ func getShortURL(ctx *gin.Context) {
 func postURL(ctx *gin.Context) {
 	buf, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
+		ctx.Status(http.StatusBadRequest)
 		return
 	}
 	inputURL := string(buf)
@@ -44,6 +45,7 @@ func postURL(ctx *gin.Context) {
 	result, err := shorten(inputURL)
 	if err != nil {
 		ctx.Status(http.StatusBadRequest)
+		return
 	}
 
 	ctx.String(http.StatusCreated, "%v", result)
