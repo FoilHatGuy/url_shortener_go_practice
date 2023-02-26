@@ -230,7 +230,7 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 	if err != nil {
 		suite.Assert().Error(err)
 	}
-
+	suite.Assert().NotEmpty(respP)
 	suite.Assert().Equal(http.StatusCreated, respP.StatusCode)
 	var bodyP []byte
 	bodyP, err = io.ReadAll(respP.Body)
@@ -250,6 +250,15 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 	fmt.Println("RESULT URL:\t", bodyG)
 
 	suite.Equal(srcURL, bodyG)
+
+	err = respP.Body.Close()
+	if err != nil {
+		return
+	}
+	err = respG.Body.Close()
+	if err != nil {
+		return
+	}
 }
 
 func TestExampleTestSuite(t *testing.T) {
