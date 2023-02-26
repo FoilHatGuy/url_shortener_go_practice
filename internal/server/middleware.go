@@ -2,11 +2,37 @@ package server
 
 import (
 	"compress/gzip"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"shortener/internal/cfg"
 	"strings"
 )
 
+func Cooker() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cookie, err := c.Cookie("user")
+		var key string
+		fmt.Println(err)
+		if err == nil {
+			key, err = engine.validate(cookie)
+			if err == nil {
+				c.SetCookie("user", cookie, 10*60*1000, "/", cfg.Server.Address, false, true)
+				c.Set("owner", key)
+				c.Next()
+				return
+			}
+		}
+		cookie, key, err = engine.generate()
+		if err != nil {
+			c.Status(http.StatusUnauthorized)
+			return
+		}
+		c.SetCookie("user", cookie, 10*60, "/", cfg.Server.Address, false, true)
+		c.Set("owner", key)
+		c.Next()
+	}
+}
 func Gunzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		contentType := c.GetHeader("Content-Encoding")

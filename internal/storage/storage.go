@@ -11,9 +11,11 @@ import (
 )
 
 type dataT map[string]string
+type ownerT map[string][]string
 
 type storage struct {
-	Data dataT `json:"data"`
+	Data   dataT  `json:"data"`
+	Owners ownerT `json:"owners"`
 }
 
 func RunAutosave() {
@@ -28,18 +30,23 @@ func RunAutosave() {
 }
 
 type DatabaseORM interface {
-	AddURL(string) string
+	AddURL(string, string) string
 	GetURL(string) (string, error)
+	GetURLByOwner(string) ([]URLOfOwner, error)
 	SaveData()
 	LoadData()
 }
 
-var Database DatabaseORM = storage{Data: make(dataT)}
+var Database DatabaseORM = storage{Data: make(dataT), Owners: make(ownerT)}
 
 func (s storage) SaveData() {
+	if cfg.Storage.StorageType == "none" {
+		return
+	}
+	validateStruct(s)
 	validateFolder()
 	fmt.Print("SAVING\n")
-	if data, err := json.Marshal(s.Data); err == nil {
+	if data, err := json.Marshal(s); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
 		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
@@ -49,10 +56,14 @@ func (s storage) SaveData() {
 	}
 }
 func (s storage) LoadData() {
+	if cfg.Storage.StorageType == "none" {
+		return
+	}
+	validateStruct(s)
 	validateFolder()
 	fmt.Printf("DATA LOADING\n")
 	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
-		err := json.Unmarshal(file, &s.Data)
+		err := json.Unmarshal(file, &s)
 		fmt.Printf("LOADED %d URLS\n", len(s.Data))
 		if err != nil {
 			return
@@ -69,25 +80,45 @@ func validateFolder() {
 		}
 	}
 }
-
-func (s storage) AddURL(url string) string {
+func validateStruct(s storage) {
 	if s.Data == nil {
 		s.Data = make(dataT)
 	}
+	if s.Owners == nil {
+		s.Owners = make(ownerT)
+	}
+}
+
+func (s storage) AddURL(url string, owner string) string {
+	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
+	s.Owners[owner] = append(s.Owners[owner], short)
 	s.SaveData()
 	//s.shortURLs = append(s.shortURLs, short)
 	return short
 }
 
 func (s storage) GetURL(url string) (string, error) {
-	if s.Data == nil {
-		s.Data = make(dataT)
-	}
+	validateStruct(s)
 	val, ok := s.Data[url]
 	if ok {
 		return val, nil
 	}
 	return "", errors.New("no url")
+}
+
+type URLOfOwner struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
+func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
+	var result []URLOfOwner
+	for _, address := range s.Owners[owner] {
+		result = append(result, URLOfOwner{address, s.Data[address]})
+	}
+
+	return result, nil
+
 }

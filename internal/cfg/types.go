@@ -1,6 +1,7 @@
 package cfg
 
 type shortCfg struct {
+	Secret    string
 	URLLength int
 }
 

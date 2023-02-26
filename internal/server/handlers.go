@@ -11,13 +11,13 @@ import (
 	"shortener/internal/storage"
 )
 
-func getShortURL(ctx *gin.Context) {
+func getShortURL(c *gin.Context) {
 
 	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
-	inputURL := ctx.Params.ByName("shortURL")
+	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
@@ -25,59 +25,89 @@ func getShortURL(ctx *gin.Context) {
 	fmt.Printf("Output url: %s, %t\n", result, err == nil)
 
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	//fmt.Printf("get complete\n\n")
-	ctx.Redirect(307, result)
+	c.Redirect(307, result)
 
 }
 
-func postURL(ctx *gin.Context) {
-	buf, err := io.ReadAll(ctx.Request.Body)
+func postURL(c *gin.Context) {
+	buf, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 	inputURL := string(buf)
-
-	result, err := shorten(inputURL)
-	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	ctx.String(http.StatusCreated, "%v", result)
+	result, err := shorten(inputURL, owner.(string))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	c.String(http.StatusCreated, "%v", result)
 }
 
-func postAPIURL(ctx *gin.Context) {
+func postAPIURL(c *gin.Context) {
 	var newReqBody struct {
 		URL string `json:"url"`
 	}
-
-	if err := ctx.BindJSON(&newReqBody); err != nil {
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	result, err := shorten(newReqBody.URL)
+	if err := c.BindJSON(&newReqBody); err != nil {
+		return
+	}
+
+	result, err := shorten(newReqBody.URL, owner.(string))
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
+		return
 	}
 
 	newResBody := struct {
 		Result string `json:"result"`
 	}{result}
-	ctx.IndentedJSON(http.StatusCreated, newResBody)
+	c.IndentedJSON(http.StatusCreated, newResBody)
 }
 
-func shorten(inputURL string) (string, error) {
+func getAllOwnedURL(c *gin.Context) {
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	result, err := storage.Database.GetURLByOwner(owner.(string))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	if result != nil {
+		c.IndentedJSON(http.StatusCreated, result)
+	} else {
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func shorten(inputURL string, owner string) (string, error) {
 
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", errors.New("bad URL")
 	}
-	shortURL := storage.Database.AddURL(inputURL)
+	shortURL := storage.Database.AddURL(inputURL, owner)
 
 	fmt.Printf("Input url: %s\n", inputURL)
 	fmt.Printf("Short url: %s\n\n", shortURL)

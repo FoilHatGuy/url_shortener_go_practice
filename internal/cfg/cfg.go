@@ -30,6 +30,7 @@ func Initialize() {
 		genv.Key("FILE_STORAGE_PATH").Default("NO SUCH FIELD").String())
 
 	Shortener = shortCfg{
+		Secret:    genv.Key("SECRET").Default("12345qwerty").String(),
 		URLLength: genv.Key("SHORT_URL_LENGTH").Default(10).Int(),
 	}
 
