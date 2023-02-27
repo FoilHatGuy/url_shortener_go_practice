@@ -85,12 +85,14 @@ func postAPIURL(c *gin.Context) {
 func getAllOwnedURL(c *gin.Context) {
 	owner, ok := c.Get("owner")
 	if !ok {
+		fmt.Println("NO OWNER CONTEXT")
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	result, err := storage.Database.GetURLByOwner(owner.(string))
 	if err != nil {
+		fmt.Println("ERROR WHILE GETTING DATA FROM DB")
 		c.Status(http.StatusBadRequest)
 		return
 	}
