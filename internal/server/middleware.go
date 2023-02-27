@@ -2,7 +2,6 @@ package server
 
 import (
 	"compress/gzip"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"shortener/internal/cfg"
@@ -14,22 +13,22 @@ func Cooker() gin.HandlerFunc {
 		cookie, err := c.Cookie("user")
 		var key string
 		if err == nil {
-			fmt.Println("UID COOKIE PRESENT:\n", cookie)
+			//fmt.Println("UID COOKIE PRESENT:\n", cookie)
 
 			key, err = engine.validate(cookie)
-			fmt.Println("VALIDATION RESULT:\n", key, err)
+			//fmt.Println("VALIDATION RESULT:\n", key, err)
 			if err == nil {
 				c.SetCookie("user", cookie, 7*24*60*60, "/", cfg.Server.Address, false, true)
 				c.Set("owner", key)
-				fmt.Println("UID KEY:\n", key)
+				//fmt.Println("UID KEY:\n", key)
 				c.Next()
 				return
 			}
 		}
-		fmt.Println("UID COOKIE MET ERROR:\n", err)
+		//fmt.Println("UID COOKIE MET ERROR:\n", err)
 		cookie, key, err = engine.generate()
-		fmt.Println("NEW COOKIE GENERATED:\n", cookie)
-		fmt.Println("NEW UID KEY:\n", key)
+		//fmt.Println("NEW COOKIE GENERATED:\n", cookie)
+		//fmt.Println("NEW UID KEY:\n", key)
 		if err != nil {
 			c.Status(http.StatusUnauthorized)
 			return

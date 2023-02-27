@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -39,7 +38,7 @@ type AuthEngine interface {
 
 func (e *engineT) validate(s string) (string, error) {
 	src, _ := hex.DecodeString(s)
-	dst := make([]byte, aes.BlockSize) // расшифровываем
+	dst := make([]byte, aes.BlockSize)
 	e.crypt.Decrypt(dst, src)
 	res := hex.EncodeToString(dst)
 	return res, nil
@@ -52,17 +51,8 @@ func (e *engineT) generate() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+	dst := make([]byte, aes.BlockSize)
+	e.crypt.Encrypt(dst, b)
 
-	h := hmac.New(sha256.New, e.secret)
-	h.Write(b)
-	dst := h.Sum(nil)
-
-	validated, err := e.validate(hex.EncodeToString(dst))
-	if err != nil {
-		return "", "", err
-	}
-	fmt.Println("ORIGINAL STRING", hex.EncodeToString(b))
-	fmt.Println("DECODED STRING ", validated)
-
-	return hex.EncodeToString(dst), validated, nil
+	return hex.EncodeToString(dst), hex.EncodeToString(b), nil
 }
