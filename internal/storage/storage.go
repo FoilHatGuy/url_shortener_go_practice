@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"shortener/internal/cfg"
@@ -116,7 +117,11 @@ type URLOfOwner struct {
 func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
 	for _, address := range s.Owners[owner] {
-		result = append(result, URLOfOwner{address, s.Data[address]})
+		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
 	}
 
 	return result, nil
