@@ -97,7 +97,7 @@ func getAllOwnedURL(c *gin.Context) {
 		return
 	}
 	if result != nil {
-		c.IndentedJSON(http.StatusCreated, result)
+		c.IndentedJSON(http.StatusOK, result)
 	} else {
 		c.Status(http.StatusNoContent)
 	}
