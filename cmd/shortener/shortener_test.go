@@ -227,23 +227,17 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 	fmt.Println("INPUT URL:\t", srcURL)
 
 	respP, err := suite.client.Post(cfg.Server.BaseURL+"/", "text/plain", srcReader)
-	if err != nil {
-		suite.Assert().Error(err)
-	}
-	suite.Assert().NotEmpty(respP)
+	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusCreated, respP.StatusCode)
+
 	var bodyP []byte
 	bodyP, err = io.ReadAll(respP.Body)
-	if err != nil {
-		suite.Assert().Error(err)
-	}
+	suite.Assert().NoError(err)
 
 	fmt.Println("SHORT URL:\t", string(bodyP))
 
 	respG, err := suite.client.Get(string(bodyP))
-	if err != nil {
-		suite.Error(err)
-	}
+	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusTemporaryRedirect, respG.StatusCode)
 
 	bodyG := respG.Header.Get("Location")
@@ -252,13 +246,9 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 	suite.Equal(srcURL, bodyG)
 
 	err = respP.Body.Close()
-	if err != nil {
-		return
-	}
+	suite.Assert().NoError(err)
 	err = respG.Body.Close()
-	if err != nil {
-		return
-	}
+	suite.Assert().NoError(err)
 }
 
 func TestExampleTestSuite(t *testing.T) {
