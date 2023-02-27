@@ -13,7 +13,7 @@ func Cooker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("user")
 		var key string
-		fmt.Println(err)
+		fmt.Println("REQUEST COOKIES:\n", cookie, err)
 		if err == nil {
 			key, err = engine.validate(cookie)
 			if err == nil {
