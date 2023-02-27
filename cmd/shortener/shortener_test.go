@@ -227,9 +227,9 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 	fmt.Println("INPUT URL:\t", srcURL)
 
 	respP, err := suite.client.Post(cfg.Server.BaseURL+"/", "text/plain", srcReader)
-	fmt.Println(respP)
-	fmt.Println(err)
-	fmt.Println(suite)
+	fmt.Println("POST response:\t\t", respP)
+	fmt.Println("POST error   :\t\t", err)
+	fmt.Println("current suite:\t\t", suite)
 	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusCreated, respP.StatusCode)
 
