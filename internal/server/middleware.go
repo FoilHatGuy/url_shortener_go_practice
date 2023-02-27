@@ -13,17 +13,20 @@ func Cooker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("user")
 		var key string
-		fmt.Println("REQUEST COOKIES:\n", cookie, err)
 		if err == nil {
+			fmt.Println("UID COOKIE PRESENT:\n", cookie)
+
 			key, err = engine.validate(cookie)
 			if err == nil {
-				c.SetCookie("user", cookie, 10*60*1000, "/", cfg.Server.Address, false, true)
+				c.SetCookie("user", cookie, 7*24*60*60*1000, "/", cfg.Server.Address, false, true)
 				c.Set("owner", key)
 				c.Next()
 				return
 			}
 		}
+		fmt.Println("UID COOKIE MET ERROR:\n", err)
 		cookie, key, err = engine.generate()
+		fmt.Println("NEW COOKIE GENERATED:\n", cookie)
 		if err != nil {
 			c.Status(http.StatusUnauthorized)
 			return
