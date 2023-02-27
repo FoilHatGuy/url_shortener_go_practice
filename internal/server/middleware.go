@@ -20,6 +20,7 @@ func Cooker() gin.HandlerFunc {
 			if err == nil {
 				c.SetCookie("user", cookie, 7*24*60*60*1000, "/", cfg.Server.Address, false, true)
 				c.Set("owner", key)
+				fmt.Println("UID KEY:\n", key)
 				c.Next()
 				return
 			}
@@ -27,6 +28,7 @@ func Cooker() gin.HandlerFunc {
 		fmt.Println("UID COOKIE MET ERROR:\n", err)
 		cookie, key, err = engine.generate()
 		fmt.Println("NEW COOKIE GENERATED:\n", cookie)
+		fmt.Println("NEW UID KEY:\n", key)
 		if err != nil {
 			c.Status(http.StatusUnauthorized)
 			return

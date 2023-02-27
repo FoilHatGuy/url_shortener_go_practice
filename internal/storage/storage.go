@@ -123,6 +123,7 @@ func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 		}
 		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
 	}
+	fmt.Println("DB:         ", s)
 	fmt.Println("RESULT IN DB", result)
 
 	return result, nil
