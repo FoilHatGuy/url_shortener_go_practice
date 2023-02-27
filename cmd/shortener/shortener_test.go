@@ -9,6 +9,7 @@ import (
 	"shortener/internal/cfg"
 	"shortener/internal/server"
 	"testing"
+	"time"
 )
 
 //
@@ -211,6 +212,7 @@ type ServerTestSuite struct {
 }
 
 func (suite *ServerTestSuite) SetupTest() {
+	go server.Run()
 	cfg.Initialize()
 	suite.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -218,7 +220,7 @@ func (suite *ServerTestSuite) SetupTest() {
 		},
 	}
 	cfg.Storage.StorageType = "none"
-	go server.Run()
+	time.Sleep(1 * time.Second)
 }
 
 func (suite *ServerTestSuite) TestGetPostRequest() {
