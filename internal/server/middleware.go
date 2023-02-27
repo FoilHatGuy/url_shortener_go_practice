@@ -18,7 +18,7 @@ func Cooker() gin.HandlerFunc {
 
 			key, err = engine.validate(cookie)
 			if err == nil {
-				c.SetCookie("user", cookie, 7*24*60*60*1000, "/", cfg.Server.Address, false, true)
+				c.SetCookie("user", cookie, 7*24*60*60, "/", cfg.Server.Address, false, true)
 				c.Set("owner", key)
 				fmt.Println("UID KEY:\n", key)
 				c.Next()

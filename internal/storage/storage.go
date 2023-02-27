@@ -116,14 +116,15 @@ type URLOfOwner struct {
 
 func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
+	fmt.Println("DB:         ", s)
 	for _, address := range s.Owners[owner] {
+		fmt.Println(owner, "owns url:", address)
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
 	}
-	fmt.Println("DB:         ", s)
 	fmt.Println("RESULT IN DB", result)
 
 	return result, nil
