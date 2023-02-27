@@ -1,17 +1,18 @@
 package urlgenerator
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var length = big.NewInt(int64(len(letters)))
 
 func RandSeq(n int) string {
 	b := make([]rune, n)
-	rand.Seed(time.Now().Unix())
 	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+		num, _ := rand.Int(rand.Reader, length)
+		b[i] = letters[num.Int64()]
 	}
 	return string(b)
 }
