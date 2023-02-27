@@ -57,5 +57,12 @@ func (e *engineT) generate() (string, string, error) {
 	h.Write(b)
 	dst := h.Sum(nil)
 
-	return hex.EncodeToString(dst), hex.EncodeToString(b), nil
+	validated, err := e.validate(hex.EncodeToString(dst))
+	if err != nil {
+		return "", "", err
+	}
+	fmt.Println("ORIGINAL STRING", hex.EncodeToString(b))
+	fmt.Println("DECODED STRING ", validated)
+
+	return hex.EncodeToString(dst), validated, nil
 }
