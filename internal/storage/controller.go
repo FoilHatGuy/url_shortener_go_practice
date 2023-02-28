@@ -39,9 +39,8 @@ func (c controllerT) Initialize() {
 		fallthrough
 	case "file":
 		c.memory.Initialize()
-		fallthrough
+		//fallthrough
 	case "database":
-		//c.database =
 		c.database.Initialize()
 	}
 }

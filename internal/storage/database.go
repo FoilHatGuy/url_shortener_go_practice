@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	_ "github.com/jackc/pgx/v5" // add this
 	"shortener/internal/cfg"
 )
 
@@ -22,7 +21,6 @@ func databaseInitialize() DatabaseORM {
 	return databaseT{memory: memory, database: db}
 }
 func (d databaseT) Initialize() {
-	return
 }
 
 func (d databaseT) AddURL(s string, s2 string) (string, error) {
@@ -42,8 +40,5 @@ func (d databaseT) GetURLByOwner(s string) ([]URLOfOwner, error) {
 
 func (d databaseT) Ping() bool {
 	err := d.database.Ping(context.Background())
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
