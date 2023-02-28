@@ -16,7 +16,7 @@ func databaseInitialize() DatabaseORM {
 	fmt.Println(cfg.Storage.DatabaseDSN)
 	db, err := pgx.Connect(context.Background(), cfg.Storage.DatabaseDSN)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return databaseT{memory: memory, database: db}
 }
