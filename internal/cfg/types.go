@@ -14,4 +14,5 @@ type storageCfg struct {
 	AutosaveInterval int
 	SavePath         string
 	StorageType      string
+	DatabaseDSN      string
 }

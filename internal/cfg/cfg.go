@@ -9,8 +9,10 @@ import (
 
 var (
 	serverAdress    string
+	databaseDSN     string
 	baseURL         string
 	fileStoragePath string
+	storageType     string
 
 	Shortener shortCfg
 	Server    serverCfg
@@ -18,10 +20,18 @@ var (
 )
 
 func Initialize() {
+	flag.StringVar(&databaseDSN, "d", "", "help message for flagname")
 	flag.StringVar(&serverAdress, "a", "localhost:8080", "help message for flagname")
 	flag.StringVar(&baseURL, "b", "http://localhost:8080", "help message for flagname")
 	flag.StringVar(&fileStoragePath, "f", "./data/data", "help message for flagname")
 	flag.Parse()
+
+	databaseDSN = genv.Key("DATABASE_DSN").Default(databaseDSN).String()
+	if databaseDSN == "" && genv.Key("DATABASE_DSN").String() == "" {
+		storageType = "file"
+	} else {
+		storageType = genv.Key("STORAGE_TYPE").Default("database").String()
+	}
 
 	fmt.Println(serverAdress, baseURL, fileStoragePath)
 	fmt.Println(
@@ -42,7 +52,8 @@ func Initialize() {
 	Storage = storageCfg{
 		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(10).Int(),
 		SavePath:         genv.Key("FILE_STORAGE_PATH").Default(fileStoragePath).String(),
-		StorageType:      genv.Key("STORAGE_TYPE").Default("file").String(),
+		StorageType:      genv.Key("STORAGE_TYPE").Default(storageType).String(),
+		DatabaseDSN:      databaseDSN,
 	}
 
 }

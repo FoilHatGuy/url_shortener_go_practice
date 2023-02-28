@@ -19,30 +19,19 @@ type storage struct {
 	Owners ownerT `json:"owners"`
 }
 
-func RunAutosave() {
-	//t := time.NewTicker(time.Duration(cfg.Storage.AutosaveInterval) * time.Second)
-	Database.LoadData()
-	//go func() {
-	//	for range t.C {
-	//		//fmt.Print("AUTOSAVE\n")
-	//		Database.SaveData()
-	//	}
-	//}()
+func (s storage) Ping() bool {
+	return true
 }
 
-type DatabaseORM interface {
-	AddURL(string, string) string
-	GetURL(string) (string, error)
-	GetURLByOwner(string) ([]URLOfOwner, error)
-	SaveData()
-	LoadData()
+func (s storage) Initialize() {
+	s.loadData()
 }
 
-var Database DatabaseORM = storage{Data: make(dataT), Owners: make(ownerT)}
+var memory DatabaseORM = storage{Data: make(dataT), Owners: make(ownerT)}
 
-func (s storage) SaveData() {
+func (s storage) saveData() error {
 	if cfg.Storage.StorageType == "none" {
-		return
+		return nil
 	}
 	validateStruct(s)
 	validateFolder()
@@ -51,12 +40,13 @@ func (s storage) SaveData() {
 		//fmt.Printf("WRITING %v\n", data)
 		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
-			return
+			return err
 		}
 		//fmt.Print("COMPLETE\n")
 	}
+	return nil
 }
-func (s storage) LoadData() {
+func (s storage) loadData() {
 	if cfg.Storage.StorageType == "none" {
 		return
 	}
@@ -90,14 +80,14 @@ func validateStruct(s storage) {
 	}
 }
 
-func (s storage) AddURL(url string, owner string) string {
+func (s storage) AddURL(url string, owner string) (string, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
 	s.Owners[owner] = append(s.Owners[owner], short)
-	s.SaveData()
+	s.saveData()
 	//s.shortURLs = append(s.shortURLs, short)
-	return short
+	return short, nil
 }
 
 func (s storage) GetURL(url string) (string, error) {
@@ -109,23 +99,15 @@ func (s storage) GetURL(url string) (string, error) {
 	return "", errors.New("no url")
 }
 
-type URLOfOwner struct {
-	ShortURL    string `json:"short_url"`
-	OriginalURL string `json:"original_url"`
-}
-
 func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
-	fmt.Println("DB:         ", s)
 	for _, address := range s.Owners[owner] {
-		fmt.Println(owner, "owns url:", address)
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
 	}
-	fmt.Println("RESULT IN DB", result)
 
 	return result, nil
 

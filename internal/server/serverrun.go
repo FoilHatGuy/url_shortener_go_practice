@@ -15,6 +15,7 @@ func Run() {
 		baseRouter.Use(Gunzip())
 		baseRouter.Use(Cooker())
 		baseRouter.GET("/:shortURL", getShortURL)
+		baseRouter.GET("/ping", pingDatabase)
 		baseRouter.POST("/", postURL)
 		api := baseRouter.Group("/api")
 		{

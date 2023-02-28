@@ -13,7 +13,7 @@ import (
 
 func getShortURL(c *gin.Context) {
 
-	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
+	//fmt.Printf("--------------data: %v\n", storage.Controller.GetData())
 	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
@@ -21,7 +21,7 @@ func getShortURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Database.GetURL(inputURL)
+	result, err := storage.Controller.GetURL(inputURL)
 	fmt.Printf("Output url: %s, %t\n", result, err == nil)
 
 	if err != nil {
@@ -82,6 +82,16 @@ func postAPIURL(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newResBody)
 }
 
+func pingDatabase(c *gin.Context) {
+	ping := storage.Controller.Ping()
+	if ping {
+		c.Status(http.StatusOK)
+	} else {
+		c.Status(http.StatusInternalServerError)
+	}
+
+}
+
 func getAllOwnedURL(c *gin.Context) {
 	owner, ok := c.Get("owner")
 	if !ok {
@@ -90,7 +100,7 @@ func getAllOwnedURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Database.GetURLByOwner(owner.(string))
+	result, err := storage.Controller.GetURLByOwner(owner.(string))
 	if err != nil {
 		fmt.Println("ERROR WHILE GETTING DATA FROM DB")
 		c.Status(http.StatusBadRequest)
@@ -109,7 +119,10 @@ func shorten(inputURL string, owner string) (string, error) {
 	if err != nil {
 		return "", errors.New("bad URL")
 	}
-	shortURL := storage.Database.AddURL(inputURL, owner)
+	shortURL, err := storage.Controller.AddURL(inputURL, owner)
+	if err != nil {
+		return "", err
+	}
 
 	fmt.Printf("Input url: %s\n", inputURL)
 	fmt.Printf("Short url: %s\n\n", shortURL)
