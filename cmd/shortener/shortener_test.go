@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"shortener/internal/cfg"
 	"shortener/internal/server"
+	"shortener/internal/storage"
 	"testing"
 	"time"
 )
@@ -212,8 +213,9 @@ type ServerTestSuite struct {
 }
 
 func (suite *ServerTestSuite) SetupTest() {
-	go server.Run()
 	cfg.Initialize()
+	storage.Initialize()
+	go server.Run()
 	suite.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
