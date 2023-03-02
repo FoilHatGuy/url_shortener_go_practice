@@ -80,14 +80,17 @@ func validateStruct(s storage) {
 	}
 }
 
-func (s storage) AddURL(url string, owner string) (string, error) {
+func (s storage) AddURL(url string, owner string) (string, bool, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
 	s.Owners[owner] = append(s.Owners[owner], short)
-	s.saveData()
+	err := s.saveData()
+	if err != nil {
+		return "", false, err
+	}
 	//s.shortURLs = append(s.shortURLs, short)
-	return short, nil
+	return short, true, nil
 }
 
 func (s storage) GetURL(url string) (string, error) {

@@ -47,13 +47,17 @@ func postURL(c *gin.Context) {
 		return
 	}
 
-	result, err := shorten(inputURL, owner.(string))
+	result, added, err := shorten(inputURL, owner.(string))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	c.String(http.StatusCreated, "%v", result)
+	if added {
+		c.String(http.StatusCreated, "%v", result)
+	} else {
+		c.String(http.StatusConflict, "%v", result)
+	}
 }
 
 func postAPIURL(c *gin.Context) {
@@ -70,7 +74,7 @@ func postAPIURL(c *gin.Context) {
 		return
 	}
 
-	result, err := shorten(newReqBody.URL, owner.(string))
+	result, added, err := shorten(newReqBody.URL, owner.(string))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
@@ -79,7 +83,11 @@ func postAPIURL(c *gin.Context) {
 	newResBody := struct {
 		Result string `json:"result"`
 	}{result}
-	c.IndentedJSON(http.StatusCreated, newResBody)
+	if added {
+		c.IndentedJSON(http.StatusCreated, newResBody)
+	} else {
+		c.IndentedJSON(http.StatusConflict, newResBody)
+	}
 }
 
 func pingDatabase(c *gin.Context) {
@@ -113,15 +121,15 @@ func getAllOwnedURL(c *gin.Context) {
 	}
 }
 
-func shorten(inputURL string, owner string) (string, error) {
+func shorten(inputURL string, owner string) (string, bool, error) {
 
 	_, err := url.Parse(inputURL)
 	if err != nil {
-		return "", errors.New("bad URL")
+		return "", false, errors.New("bad URL")
 	}
-	shortURL, err := storage.Controller.AddURL(inputURL, owner)
+	shortURL, added, err := storage.Controller.AddURL(inputURL, owner)
 	if err != nil {
-		return "", err
+		return "", added, err
 	}
 
 	fmt.Printf("Input url: %s\n", inputURL)
@@ -129,5 +137,5 @@ func shorten(inputURL string, owner string) (string, error) {
 
 	result, _ := url.Parse(cfg.Server.BaseURL)
 	result = result.JoinPath(shortURL)
-	return result.String(), nil
+	return result.String(), added, nil
 }

@@ -45,24 +45,22 @@ func (c controllerT) Initialize() {
 	}
 }
 
-func (c controllerT) AddURL(s string, s2 string) (string, error) {
+func (c controllerT) AddURL(s string, s2 string) (string, bool, error) {
 	switch cfg.Storage.StorageType {
 	case "database":
-		fallthrough
-		//return c.database.AddURL(s, s2)
+		return c.database.AddURL(s, s2)
 	case "none":
 		fallthrough
 	case "file":
 		return c.memory.AddURL(s, s2)
 	}
-	return "", errors.New("STORAGE_TYPE contains the value that is neither 'file' or 'database'")
+	return "", false, errors.New("STORAGE_TYPE contains the value that is neither 'file' or 'database'")
 }
 
 func (c controllerT) GetURL(s string) (string, error) {
 	switch cfg.Storage.StorageType {
 	case "database":
-		//return c.database.GetURL(s)
-		fallthrough
+		return c.database.GetURL(s)
 	case "none":
 		fallthrough
 	case "file":
@@ -74,8 +72,7 @@ func (c controllerT) GetURL(s string) (string, error) {
 func (c controllerT) GetURLByOwner(s string) ([]URLOfOwner, error) {
 	switch cfg.Storage.StorageType {
 	case "database":
-		fallthrough
-		//return c.database.GetURLByOwner(s)
+		return c.database.GetURLByOwner(s)
 	case "none":
 		fallthrough
 	case "file":
@@ -90,7 +87,7 @@ type URLOfOwner struct {
 }
 type DatabaseORM interface {
 	Initialize()
-	AddURL(string, string) (string, error)
+	AddURL(string, string) (string, bool, error)
 	GetURL(string) (string, error)
 	GetURLByOwner(string) ([]URLOfOwner, error)
 	Ping() bool

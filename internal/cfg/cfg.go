@@ -27,7 +27,7 @@ func Initialize() {
 	flag.Parse()
 
 	databaseDSN = genv.Key("DATABASE_DSN").Default(databaseDSN).String()
-	fmt.Println("DSN:\t")
+	fmt.Println("DSN:\t", databaseDSN)
 	if databaseDSN == "" {
 		fmt.Println("FILE SELECTED AS STORAGE TYPE DUE TO NO DSN")
 		storageType = "file"
