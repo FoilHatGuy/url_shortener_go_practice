@@ -20,6 +20,7 @@ func Run() {
 		api := baseRouter.Group("/api")
 		{
 			api.POST("/shorten", postAPIURL)
+			api.POST("/shorten/batch", batchShorten)
 			api.GET("/user/urls", getAllOwnedURL)
 		}
 	}

@@ -139,3 +139,36 @@ func shorten(inputURL string, owner string) (string, bool, error) {
 	result = result.JoinPath(shortURL)
 	return result.String(), added, nil
 }
+
+func batchShorten(c *gin.Context) {
+	type reqElement struct {
+		LineID string `json:"correlation_id"`
+		URL    string `json:"original_url"`
+	}
+	type resElement struct {
+		LineID string `json:"correlation_id"`
+		URL    string `json:"short_url"`
+	}
+	var newReqBody []reqElement
+	var newResBody []resElement
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if err := c.BindJSON(&newReqBody); err != nil {
+		return
+	}
+
+	for _, element := range newReqBody {
+		result, _, err := shorten(element.URL, owner.(string))
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		newResBody = append(newResBody, resElement{element.LineID, result})
+	}
+
+	c.IndentedJSON(http.StatusCreated, newResBody)
+}
