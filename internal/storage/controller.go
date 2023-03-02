@@ -25,8 +25,8 @@ func (c controllerT) Ping() bool {
 	case "none":
 		fallthrough
 	case "file":
-		//return c.memory.Ping()
-		fallthrough
+		return c.memory.Ping()
+		//fallthrough
 	case "database":
 		return c.database.Ping()
 	}

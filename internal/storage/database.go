@@ -11,15 +11,20 @@ import (
 )
 
 type databaseT struct {
-	memory   DatabaseORM
 	database *pgx.Conn
 }
 
 func databaseInitialize() DatabaseORM {
-	fmt.Println(cfg.Storage.DatabaseDSN)
-	r := regexp.MustCompile("dbname=[a-zA-Z]*\\s?")
+	if cfg.Storage.DatabaseDSN == "" {
+		return nil
+	}
+	r := regexp.MustCompile(`dbname=[a-zA-Z]*\\s?`)
 	initAddress := r.ReplaceAllString(cfg.Storage.DatabaseDSN, "")
 	initDB, err := pgx.Connect(context.Background(), initAddress)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 
 	exec, err := initDB.Exec(context.Background(), `
 		SELECT 'CREATE DATABASE shortener'
@@ -35,7 +40,7 @@ func databaseInitialize() DatabaseORM {
 	if err != nil {
 		return nil
 	}
-	return databaseT{memory: memory, database: db}
+	return databaseT{database: db}
 }
 func (d databaseT) Initialize() {
 	exec, err := d.database.Exec(context.Background(), `
@@ -122,11 +127,11 @@ func (d databaseT) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
 	`, owner)
-	defer rows.Close()
 	if err != nil {
 		fmt.Println("ERR", err)
 		return nil, err
 	}
+	defer rows.Close()
 	fmt.Println(rows)
 	var originalURL, shortURL string
 	var result []URLOfOwner
