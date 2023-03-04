@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func getShortURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Controller.GetURL(inputURL)
+	result, err := storage.Controller.GetURL(inputURL, c)
 	fmt.Printf("Output url: %s, %t\n", result, err == nil)
 
 	if err != nil {
@@ -47,7 +48,7 @@ func postURL(c *gin.Context) {
 		return
 	}
 
-	result, added, err := shorten(inputURL, owner.(string))
+	result, added, err := shorten(inputURL, owner.(string), c)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
@@ -74,7 +75,7 @@ func postAPIURL(c *gin.Context) {
 		return
 	}
 
-	result, added, err := shorten(newReqBody.URL, owner.(string))
+	result, added, err := shorten(newReqBody.URL, owner.(string), c)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
@@ -91,7 +92,7 @@ func postAPIURL(c *gin.Context) {
 }
 
 func pingDatabase(c *gin.Context) {
-	ping := storage.Controller.Ping()
+	ping := storage.Controller.Ping(c)
 	if ping {
 		c.Status(http.StatusOK)
 	} else {
@@ -108,7 +109,7 @@ func getAllOwnedURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Controller.GetURLByOwner(owner.(string))
+	result, err := storage.Controller.GetURLByOwner(owner.(string), c)
 	if err != nil {
 		fmt.Println("ERROR WHILE GETTING DATA FROM DB")
 		c.Status(http.StatusBadRequest)
@@ -121,13 +122,13 @@ func getAllOwnedURL(c *gin.Context) {
 	}
 }
 
-func shorten(inputURL string, owner string) (string, bool, error) {
+func shorten(inputURL string, owner string, ctx context.Context) (string, bool, error) {
 
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", false, errors.New("bad URL")
 	}
-	shortURL, added, err := storage.Controller.AddURL(inputURL, owner)
+	shortURL, added, err := storage.Controller.AddURL(inputURL, owner, ctx)
 	if err != nil {
 		return "", added, err
 	}
@@ -162,7 +163,7 @@ func batchShorten(c *gin.Context) {
 	}
 
 	for _, element := range newReqBody {
-		result, _, err := shorten(element.URL, owner.(string))
+		result, _, err := shorten(element.URL, owner.(string), c)
 		if err != nil {
 			c.Status(http.StatusBadRequest)
 			return

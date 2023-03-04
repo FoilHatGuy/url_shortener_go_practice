@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,7 +20,7 @@ type storage struct {
 	Owners ownerT `json:"owners"`
 }
 
-func (s storage) Ping() bool {
+func (s storage) Ping(_ context.Context) bool {
 	return true
 }
 
@@ -80,7 +81,7 @@ func validateStruct(s storage) {
 	}
 }
 
-func (s storage) AddURL(url string, owner string) (string, bool, error) {
+func (s storage) AddURL(url string, owner string, _ context.Context) (string, bool, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
@@ -93,7 +94,7 @@ func (s storage) AddURL(url string, owner string) (string, bool, error) {
 	return short, true, nil
 }
 
-func (s storage) GetURL(url string) (string, error) {
+func (s storage) GetURL(url string, _ context.Context) (string, error) {
 	validateStruct(s)
 	val, ok := s.Data[url]
 	if ok {
@@ -102,7 +103,7 @@ func (s storage) GetURL(url string) (string, error) {
 	return "", errors.New("no url")
 }
 
-func (s storage) GetURLByOwner(owner string) ([]URLOfOwner, error) {
+func (s storage) GetURLByOwner(owner string, _ context.Context) ([]URLOfOwner, error) {
 	var result []URLOfOwner
 	for _, address := range s.Owners[owner] {
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)

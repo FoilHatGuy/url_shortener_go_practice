@@ -71,12 +71,12 @@ func (d databaseT) Initialize() {
 	}
 }
 
-func (d databaseT) AddURL(url string, owner string) (string, bool, error) {
+func (d databaseT) AddURL(url string, owner string, ctx context.Context) (string, bool, error) {
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	added := false
 	var shortURL, originalURL string
 
-	_, err := d.database.Exec(context.Background(), `
+	_, err := d.database.Exec(ctx, `
 	INSERT INTO urls VALUES($1, $2) 
 	ON CONFLICT DO NOTHING
 `, short, url)
@@ -84,7 +84,7 @@ func (d databaseT) AddURL(url string, owner string) (string, bool, error) {
 		fmt.Println("ERR", err)
 		return "", false, err
 	}
-	err = d.database.QueryRow(context.Background(), `
+	err = d.database.QueryRow(ctx, `
 		SELECT * FROM urls
 		WHERE original_url = $1
 	`, url).Scan(&shortURL, &originalURL)
@@ -97,7 +97,7 @@ func (d databaseT) AddURL(url string, owner string) (string, bool, error) {
 		fmt.Println("RESULT:", shortURL, originalURL)
 
 	} else {
-		_, err = d.database.Exec(context.Background(), `
+		_, err = d.database.Exec(ctx, `
 			INSERT INTO users VALUES($1, $2) 
 		`, owner, short)
 		if err != nil {
@@ -109,9 +109,9 @@ func (d databaseT) AddURL(url string, owner string) (string, bool, error) {
 	return shortURL, added, nil
 }
 
-func (d databaseT) GetURL(short string) (string, error) {
+func (d databaseT) GetURL(short string, ctx context.Context) (string, error) {
 	var originalURL string
-	err := d.database.QueryRow(context.Background(), `
+	err := d.database.QueryRow(ctx, `
 		SELECT original_url FROM urls
 		WHERE short_url = $1
 	`, short).Scan(&originalURL)
@@ -122,8 +122,8 @@ func (d databaseT) GetURL(short string) (string, error) {
 	return originalURL, err
 }
 
-func (d databaseT) GetURLByOwner(owner string) ([]URLOfOwner, error) {
-	rows, err := d.database.Query(context.Background(), `
+func (d databaseT) GetURLByOwner(owner string, ctx context.Context) ([]URLOfOwner, error) {
+	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
 	`, owner)
@@ -150,7 +150,7 @@ func (d databaseT) GetURLByOwner(owner string) ([]URLOfOwner, error) {
 	return result, err
 }
 
-func (d databaseT) Ping() bool {
-	err := d.database.Ping(context.Background())
+func (d databaseT) Ping(ctx context.Context) bool {
+	err := d.database.Ping(ctx)
 	return err == nil
 }

@@ -18,7 +18,7 @@ func Cooker() gin.HandlerFunc {
 			key, err = engine.validate(cookie)
 			//fmt.Println("VALIDATION RESULT:\n", key, err)
 			if err == nil {
-				c.SetCookie("user", cookie, 7*24*60*60, "/", cfg.Server.Address, false, true)
+				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.Address, false, true)
 				c.Set("owner", key)
 				//fmt.Println("UID KEY:\n", key)
 				c.Next()
@@ -33,7 +33,7 @@ func Cooker() gin.HandlerFunc {
 			c.Status(http.StatusUnauthorized)
 			return
 		}
-		c.SetCookie("user", cookie, 10*60, "/", cfg.Server.Address, false, true)
+		c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.Address, false, true)
 		c.Set("owner", key)
 		c.Next()
 	}

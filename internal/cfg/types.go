@@ -6,9 +6,10 @@ type shortCfg struct {
 }
 
 type serverCfg struct {
-	Address string
-	Port    string
-	BaseURL string
+	Address        string
+	Port           string
+	BaseURL        string
+	CookieLifetime int
 }
 type storageCfg struct {
 	AutosaveInterval int

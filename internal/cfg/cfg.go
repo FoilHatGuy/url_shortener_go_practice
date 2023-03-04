@@ -48,9 +48,10 @@ func Initialize() {
 	}
 
 	Server = serverCfg{
-		Address: genv.Key("SERVER_ADDRESS").Default(serverAdress).String(),
-		Port:    genv.Key("SERVER_PORT").Default("8080").String(),
-		BaseURL: genv.Key("BASE_URL").Default(baseURL).String(),
+		Address:        genv.Key("SERVER_ADDRESS").Default(serverAdress).String(),
+		Port:           genv.Key("SERVER_PORT").Default("8080").String(),
+		BaseURL:        genv.Key("BASE_URL").Default(baseURL).String(),
+		CookieLifetime: 30 * 24 * 60 * 60,
 	}
 	Storage = storageCfg{
 		AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(10).Int(),
