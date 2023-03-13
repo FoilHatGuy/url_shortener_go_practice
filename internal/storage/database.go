@@ -128,12 +128,13 @@ func (d databaseT) AddURL(ctx context.Context, url string, owner string) (string
 
 func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, error) {
 	var originalURL string
+	var deleted bool
 	err := d.database.QueryRow(ctx, `
-		SELECT original_url FROM urls
-		WHERE short_url = $1 AND deleted = FALSE
-	`, short).Scan(&originalURL)
+		SELECT original_url, deleted FROM urls
+		WHERE short_url = $1
+	`, short).Scan(&originalURL, &deleted)
 	fmt.Println(err, "\n", originalURL, "\n", short)
-	if err.Error() == "no rows in result set" {
+	if deleted {
 		return "", true, nil
 	}
 	if err != nil {
