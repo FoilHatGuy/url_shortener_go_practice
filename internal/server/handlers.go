@@ -26,7 +26,7 @@ func getShortURL(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-	if result == "" && !ok {
+	if result == "" && ok {
 		c.Status(http.StatusGone)
 		return
 	}
