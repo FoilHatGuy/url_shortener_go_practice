@@ -12,7 +12,11 @@ import (
 	"shortener/internal/urlgenerator"
 )
 
-type dataT map[string]string
+type dataTVal struct {
+	Short   string
+	Deleted bool
+}
+type dataT map[string]dataTVal
 type ownerT map[string][]string
 
 type storage struct {
@@ -88,7 +92,8 @@ func validateStruct(s storage) {
 func (s storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
-	s.Data[short] = url
+	res := dataTVal{url, false}
+	s.Data[short] = res
 	s.Owners[owner] = append(s.Owners[owner], short)
 	err := s.saveData()
 	if err != nil {
@@ -102,7 +107,10 @@ func (s storage) GetURL(_ context.Context, url string) (string, bool, error) {
 	validateStruct(s)
 	val, ok := s.Data[url]
 	if ok {
-		return val, false, nil
+		if val.Deleted {
+			return "", true, nil
+		}
+		return val.Short, false, nil
 	}
 	return "", false, errors.New("no url")
 }
@@ -114,7 +122,7 @@ func (s storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, e
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
+		result = append(result, URLOfOwner{fullAddr, s.Data[address].Short})
 	}
 
 	return result, nil
