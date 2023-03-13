@@ -13,8 +13,6 @@ import (
 )
 
 func getShortURL(c *gin.Context) {
-
-	//fmt.Printf("--------------data: %v\n", storage.Controller.GetData())
 	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
@@ -22,14 +20,16 @@ func getShortURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Controller.GetURL(inputURL, c)
+	result, ok, err := storage.Controller.GetURL(c, inputURL)
 	fmt.Printf("Output url: %s, %t\n", result, err == nil)
-
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-
+	if result == "" && ok {
+		c.Status(http.StatusGone)
+		return
+	}
 	//fmt.Printf("get complete\n\n")
 	c.Redirect(307, result)
 
@@ -100,6 +100,27 @@ func pingDatabase(c *gin.Context) {
 	}
 
 }
+func deleteLine(c *gin.Context) {
+	owner, ok := c.Get("owner")
+	if !ok {
+		fmt.Println("NO OWNER CONTEXT")
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	var urls []string
+	if err := c.BindJSON(&urls); err != nil {
+		c.Status(http.StatusInternalServerError)
+	}
+
+	go func() {
+		err := storage.Controller.Delete(c, urls, owner.(string))
+		if err != nil {
+			return
+		}
+	}()
+	c.Status(http.StatusAccepted)
+
+}
 
 func getAllOwnedURL(c *gin.Context) {
 	owner, ok := c.Get("owner")
@@ -109,7 +130,7 @@ func getAllOwnedURL(c *gin.Context) {
 		return
 	}
 
-	result, err := storage.Controller.GetURLByOwner(owner.(string), c)
+	result, err := storage.Controller.GetURLByOwner(c, owner.(string))
 	if err != nil {
 		fmt.Println("ERROR WHILE GETTING DATA FROM DB")
 		c.Status(http.StatusBadRequest)
@@ -128,7 +149,7 @@ func shorten(inputURL string, owner string, ctx context.Context) (string, bool, 
 	if err != nil {
 		return "", false, errors.New("bad URL")
 	}
-	shortURL, added, err := storage.Controller.AddURL(inputURL, owner, ctx)
+	shortURL, added, err := storage.Controller.AddURL(ctx, inputURL, owner)
 	if err != nil {
 		return "", added, err
 	}
