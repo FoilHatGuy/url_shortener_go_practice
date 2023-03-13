@@ -133,7 +133,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, erro
 		SELECT original_url, deleted FROM urls
 		WHERE short_url = $1
 	`, short).Scan(&originalURL, &deleted)
-	fmt.Println(err, "\n", originalURL, "\n", short)
+	fmt.Println(err, "\n", originalURL, "\n", short, "\n", deleted)
 	if deleted {
 		return "", true, nil
 	}

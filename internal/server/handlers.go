@@ -13,8 +13,6 @@ import (
 )
 
 func getShortURL(c *gin.Context) {
-
-	//fmt.Printf("--------------data: %v\n", storage.Controller.GetData())
 	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
