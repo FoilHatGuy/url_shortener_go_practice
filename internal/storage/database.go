@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"net/url"
 	"regexp"
 	"shortener/internal/cfg"
@@ -14,7 +15,7 @@ import (
 )
 
 type databaseT struct {
-	database *pgx.Conn
+	database *pgxpool.Pool
 }
 
 func databaseInitialize() DatabaseORM {
@@ -53,7 +54,7 @@ func databaseInitialize() DatabaseORM {
 		return nil
 	}
 
-	db, err := pgx.Connect(context.Background(), cfg.Storage.DatabaseDSN)
+	db, err := pgxpool.New(context.Background(), cfg.Storage.DatabaseDSN)
 	if err != nil && !errors.Is(err, new(pgconn.PgError)) {
 		return nil
 	}
