@@ -20,6 +20,10 @@ type storage struct {
 	Owners ownerT `json:"owners"`
 }
 
+func (s storage) Delete(ctx context.Context, strings []string, owner string) error {
+	return errors.New("NOT IMPLEMENTED")
+}
+
 func (s storage) Ping(_ context.Context) bool {
 	return true
 }
@@ -81,7 +85,7 @@ func validateStruct(s storage) {
 	}
 }
 
-func (s storage) AddURL(url string, owner string, _ context.Context) (string, bool, error) {
+func (s storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	s.Data[short] = url
@@ -94,16 +98,16 @@ func (s storage) AddURL(url string, owner string, _ context.Context) (string, bo
 	return short, true, nil
 }
 
-func (s storage) GetURL(url string, _ context.Context) (string, error) {
+func (s storage) GetURL(_ context.Context, url string) (string, bool, error) {
 	validateStruct(s)
 	val, ok := s.Data[url]
 	if ok {
-		return val, nil
+		return val, false, nil
 	}
-	return "", errors.New("no url")
+	return "", false, errors.New("no url")
 }
 
-func (s storage) GetURLByOwner(owner string, _ context.Context) ([]URLOfOwner, error) {
+func (s storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
 	for _, address := range s.Owners[owner] {
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
