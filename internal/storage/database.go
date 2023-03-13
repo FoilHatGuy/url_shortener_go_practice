@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
@@ -134,7 +133,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, erro
 		WHERE short_url = $1 AND deleted = FALSE
 	`, short).Scan(&originalURL)
 	fmt.Println(err, "\n", originalURL, "\n", short)
-	if errors.Is(err, sql.ErrNoRows) {
+	if err.Error() == "no rows in result set" {
 		return "", true, nil
 	}
 	if err != nil {
@@ -173,6 +172,7 @@ func (d databaseT) GetURLByOwner(ctx context.Context, owner string) ([]URLOfOwne
 }
 
 func (d databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
+	fmt.Println(stringArray)
 	q, err := d.database.Exec(ctx, fmt.Sprintf(`
 		UPDATE urls
 		SET deleted = TRUE
