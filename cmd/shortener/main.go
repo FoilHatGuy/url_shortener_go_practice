@@ -11,6 +11,6 @@ import (
 
 func main() {
 	cfg.Initialize()
-	storage.RunAutosave()
+	storage.Initialize()
 	server.Run()
 }

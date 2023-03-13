@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -11,78 +12,164 @@ import (
 	"shortener/internal/storage"
 )
 
-func getShortURL(ctx *gin.Context) {
+func getShortURL(c *gin.Context) {
 
-	//fmt.Printf("--------------data: %v\n", storage.Database.GetData())
-	inputURL := ctx.Params.ByName("shortURL")
+	//fmt.Printf("--------------data: %v\n", storage.Controller.GetData())
+	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != cfg.Shortener.URLLength {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	result, err := storage.Database.GetURL(inputURL)
+	result, err := storage.Controller.GetURL(inputURL, c)
 	fmt.Printf("Output url: %s, %t\n", result, err == nil)
 
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	//fmt.Printf("get complete\n\n")
-	ctx.Redirect(307, result)
+	c.Redirect(307, result)
 
 }
 
-func postURL(ctx *gin.Context) {
-	buf, err := io.ReadAll(ctx.Request.Body)
+func postURL(c *gin.Context) {
+	buf, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 	inputURL := string(buf)
-
-	result, err := shorten(inputURL)
-	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	ctx.String(http.StatusCreated, "%v", result)
+	result, added, err := shorten(inputURL, owner.(string), c)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if added {
+		c.String(http.StatusCreated, "%v", result)
+	} else {
+		c.String(http.StatusConflict, "%v", result)
+	}
 }
 
-func postAPIURL(ctx *gin.Context) {
+func postAPIURL(c *gin.Context) {
 	var newReqBody struct {
 		URL string `json:"url"`
 	}
-
-	if err := ctx.BindJSON(&newReqBody); err != nil {
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	result, err := shorten(newReqBody.URL)
+	if err := c.BindJSON(&newReqBody); err != nil {
+		return
+	}
+
+	result, added, err := shorten(newReqBody.URL, owner.(string), c)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
+		c.Status(http.StatusBadRequest)
+		return
 	}
 
 	newResBody := struct {
 		Result string `json:"result"`
 	}{result}
-	ctx.IndentedJSON(http.StatusCreated, newResBody)
+	if added {
+		c.IndentedJSON(http.StatusCreated, newResBody)
+	} else {
+		c.IndentedJSON(http.StatusConflict, newResBody)
+	}
 }
 
-func shorten(inputURL string) (string, error) {
+func pingDatabase(c *gin.Context) {
+	ping := storage.Controller.Ping(c)
+	if ping {
+		c.Status(http.StatusOK)
+	} else {
+		c.Status(http.StatusInternalServerError)
+	}
+
+}
+
+func getAllOwnedURL(c *gin.Context) {
+	owner, ok := c.Get("owner")
+	if !ok {
+		fmt.Println("NO OWNER CONTEXT")
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	result, err := storage.Controller.GetURLByOwner(owner.(string), c)
+	if err != nil {
+		fmt.Println("ERROR WHILE GETTING DATA FROM DB")
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	if result != nil {
+		c.IndentedJSON(http.StatusOK, result)
+	} else {
+		c.Status(http.StatusNoContent)
+	}
+}
+
+func shorten(inputURL string, owner string, ctx context.Context) (string, bool, error) {
 
 	_, err := url.Parse(inputURL)
 	if err != nil {
-		return "", errors.New("bad URL")
+		return "", false, errors.New("bad URL")
 	}
-	shortURL := storage.Database.AddURL(inputURL)
+	shortURL, added, err := storage.Controller.AddURL(inputURL, owner, ctx)
+	if err != nil {
+		return "", added, err
+	}
 
 	fmt.Printf("Input url: %s\n", inputURL)
 	fmt.Printf("Short url: %s\n\n", shortURL)
 
 	result, _ := url.Parse(cfg.Server.BaseURL)
 	result = result.JoinPath(shortURL)
-	return result.String(), nil
+	return result.String(), added, nil
+}
+
+func batchShorten(c *gin.Context) {
+	type reqElement struct {
+		LineID string `json:"correlation_id"`
+		URL    string `json:"original_url"`
+	}
+	type resElement struct {
+		LineID string `json:"correlation_id"`
+		URL    string `json:"short_url"`
+	}
+	var newReqBody []reqElement
+	var newResBody []resElement
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	if err := c.BindJSON(&newReqBody); err != nil {
+		return
+	}
+
+	for _, element := range newReqBody {
+		result, _, err := shorten(element.URL, owner.(string), c)
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		newResBody = append(newResBody, resElement{element.LineID, result})
+	}
+
+	c.IndentedJSON(http.StatusCreated, newResBody)
 }
