@@ -133,6 +133,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, erro
 		SELECT original_url FROM urls
 		WHERE short_url = $1 AND deleted = FALSE
 	`, short).Scan(&originalURL)
+	fmt.Println(err, "\n", originalURL, "\n", short)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", true, nil
 	}

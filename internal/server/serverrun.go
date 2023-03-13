@@ -22,7 +22,7 @@ func Run() {
 			api.POST("/shorten", postAPIURL)
 			api.POST("/shorten/batch", batchShorten)
 			api.GET("/user/urls", getAllOwnedURL)
-			api.DELETE("/user/urls", delete)
+			api.DELETE("/user/urls", deleteLine)
 		}
 	}
 

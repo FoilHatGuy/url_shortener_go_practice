@@ -28,7 +28,7 @@ func getShortURL(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-	if !ok {
+	if result == "" && !ok {
 		c.Status(http.StatusGone)
 		return
 	}
@@ -102,7 +102,7 @@ func pingDatabase(c *gin.Context) {
 	}
 
 }
-func delete(c *gin.Context) {
+func deleteLine(c *gin.Context) {
 	owner, ok := c.Get("owner")
 	if !ok {
 		fmt.Println("NO OWNER CONTEXT")
