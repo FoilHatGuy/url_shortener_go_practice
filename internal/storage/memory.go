@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/juliangruber/go-intersect"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -24,8 +25,14 @@ type storage struct {
 	Owners ownerT `json:"owners"`
 }
 
-func (s storage) Delete(ctx context.Context, strings []string, owner string) error {
-	return errors.New("NOT IMPLEMENTED")
+func (s storage) Delete(_ context.Context, urls []string, owner string) error {
+	items := intersect.Hash(s.Owners[owner], urls)
+	for _, i := range items {
+		val := s.Data[i.(string)]
+		val.Deleted = true
+		s.Data[i.(string)] = val
+	}
+	return nil
 }
 
 func (s storage) Ping(_ context.Context) bool {
