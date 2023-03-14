@@ -31,7 +31,7 @@ func getShortURL(ctx *gin.Context) {
 	}(ctx.Copy())
 
 	h := <-r
-	fmt.Printf("Output url: %s, %t\n", h["result"].(string), h["err"] == nil)
+	fmt.Printf("Output url: %s, is ok?: %t\n", h["result"].(string), h["ok"])
 	if h["err"] != nil {
 		ctx.Status(http.StatusBadRequest)
 		return
