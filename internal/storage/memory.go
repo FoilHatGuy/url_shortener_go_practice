@@ -95,10 +95,10 @@ func (s storage) AddURL(_ context.Context, url string, owner string) (string, bo
 	res := dataTVal{url, false}
 	s.Data[short] = res
 	s.Owners[owner] = append(s.Owners[owner], short)
-	err := s.saveData()
-	if err != nil {
-		return "", false, err
-	}
+	//err := s.saveData()
+	//if err != nil {
+	//	return "", false, err
+	//}
 	//s.shortURLs = append(s.shortURLs, short)
 	return short, true, nil
 }
