@@ -12,71 +12,52 @@ import (
 	"shortener/internal/storage"
 )
 
-func getShortURL(ctx *gin.Context) {
-	r := make(chan gin.H)
-	go func(c *gin.Context) {
-		inputURL := c.Params.ByName("shortURL")
-		fmt.Printf("Input url: %q\n", inputURL)
-		if len(inputURL) != cfg.Shortener.URLLength {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-
-		result, ok, err := storage.Controller.GetURL(c, inputURL)
-		r <- gin.H{
-			"result": result,
-			"ok":     ok,
-			"err":    err,
-		}
-	}(ctx.Copy())
-
-	h := <-r
-	fmt.Printf("Output url: %s, is ok?: %t\n", h["result"].(string), h["ok"])
-	if h["err"] != nil {
-		ctx.Status(http.StatusBadRequest)
+func getShortURL(c *gin.Context) {
+	inputURL := c.Params.ByName("shortURL")
+	fmt.Printf("Input url: %q\n", inputURL)
+	if len(inputURL) != cfg.Shortener.URLLength {
+		c.Status(http.StatusBadRequest)
 		return
 	}
-	if h["result"].(string) == "" && h["ok"].(bool) {
-		ctx.Status(http.StatusGone)
+
+	result, ok, err := storage.Controller.GetURL(c, inputURL)
+	fmt.Printf("Output url: %s, %t\n", result, err == nil)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	if result == "" && ok {
+		c.Status(http.StatusGone)
 		return
 	}
 	//fmt.Printf("get complete\n\n")
-	ctx.Redirect(307, h["result"].(string))
+	c.Redirect(307, result)
 
 }
 
-func postURL(ctx *gin.Context) {
-	r := make(chan gin.H)
-	go func(c *gin.Context) {
-		buf, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		inputURL := string(buf)
-		owner, ok := c.Get("owner")
-		if !ok {
-			c.Status(http.StatusBadRequest)
-			return
-		}
+func postURL(c *gin.Context) {
+	buf, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+	inputURL := string(buf)
+	owner, ok := c.Get("owner")
+	if !ok {
+		c.Status(http.StatusBadRequest)
+		return
+	}
 
-		result, added, err := shorten(inputURL, owner.(string), c)
-		if err != nil {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		r <- gin.H{
-			"result": result,
-			"added":  added,
-			"err":    err,
-		}
-	}(ctx.Copy())
+	result, added, err := shorten(inputURL, owner.(string), c)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
 
-	h := <-r
-	if h["added"].(bool) {
-		ctx.String(http.StatusCreated, "%v", h["result"].(string))
+	if added {
+		c.String(http.StatusCreated, "%v", result)
 	} else {
-		ctx.String(http.StatusConflict, "%v", h["result"].(string))
+		c.String(http.StatusConflict, "%v", result)
 	}
 }
 
