@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/juliangruber/go-intersect"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -12,12 +13,26 @@ import (
 	"shortener/internal/urlgenerator"
 )
 
-type dataT map[string]string
+type dataTVal struct {
+	Short   string
+	Deleted bool
+}
+type dataT map[string]dataTVal
 type ownerT map[string][]string
 
 type storage struct {
 	Data   dataT  `json:"data"`
 	Owners ownerT `json:"owners"`
+}
+
+func (s storage) Delete(_ context.Context, urls []string, owner string) error {
+	items := intersect.Hash(s.Owners[owner], urls)
+	for _, i := range items {
+		val := s.Data[i.(string)]
+		val.Deleted = true
+		s.Data[i.(string)] = val
+	}
+	return nil
 }
 
 func (s storage) Ping(_ context.Context) bool {
@@ -81,36 +96,40 @@ func validateStruct(s storage) {
 	}
 }
 
-func (s storage) AddURL(url string, owner string, _ context.Context) (string, bool, error) {
+func (s storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
 	validateStruct(s)
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
-	s.Data[short] = url
+	res := dataTVal{url, false}
+	s.Data[short] = res
 	s.Owners[owner] = append(s.Owners[owner], short)
-	err := s.saveData()
-	if err != nil {
-		return "", false, err
-	}
+	//err := s.saveData()
+	//if err != nil {
+	//	return "", false, err
+	//}
 	//s.shortURLs = append(s.shortURLs, short)
 	return short, true, nil
 }
 
-func (s storage) GetURL(url string, _ context.Context) (string, error) {
+func (s storage) GetURL(_ context.Context, url string) (string, bool, error) {
 	validateStruct(s)
 	val, ok := s.Data[url]
 	if ok {
-		return val, nil
+		if val.Deleted {
+			return "", true, nil
+		}
+		return val.Short, false, nil
 	}
-	return "", errors.New("no url")
+	return "", false, errors.New("no url")
 }
 
-func (s storage) GetURLByOwner(owner string, _ context.Context) ([]URLOfOwner, error) {
+func (s storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
 	for _, address := range s.Owners[owner] {
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, URLOfOwner{fullAddr, s.Data[address]})
+		result = append(result, URLOfOwner{fullAddr, s.Data[address].Short})
 	}
 
 	return result, nil
