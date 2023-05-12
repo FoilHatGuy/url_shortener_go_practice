@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"log"
 	"shortener/internal/cfg"
@@ -25,7 +26,7 @@ func Run() {
 			api.DELETE("/user/urls", deleteLine)
 		}
 	}
-
+	pprof.Register(r)
 	fmt.Println("SERVER LISTENING ON", cfg.Server.Address)
 	log.Fatal(r.Run(cfg.Server.Address))
 }

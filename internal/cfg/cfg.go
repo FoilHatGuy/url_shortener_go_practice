@@ -18,8 +18,13 @@ var (
 	Server    serverCfg
 	Storage   storageCfg
 )
+var initialised = false
 
 func Initialize() {
+	if initialised {
+		return
+	}
+	fmt.Println("cfg initialized")
 	flag.StringVar(&databaseDSN, "d", "", "help message for flagname")
 	flag.StringVar(&serverAdress, "a", "localhost:8080", "help message for flagname")
 	flag.StringVar(&baseURL, "b", "http://localhost:8080", "help message for flagname")
@@ -59,5 +64,5 @@ func Initialize() {
 		StorageType:      genv.Key("STORAGE_TYPE").Default(storageType).String(),
 		DatabaseDSN:      databaseDSN,
 	}
-
+	initialised = true
 }

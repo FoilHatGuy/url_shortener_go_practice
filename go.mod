@@ -3,6 +3,7 @@ module shortener
 go 1.19
 
 require (
+	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/juliangruber/go-intersect v1.1.0
