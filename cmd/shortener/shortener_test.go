@@ -17,8 +17,6 @@ import (
 type ServerTestSuite struct {
 	suite.Suite
 	client http.Client
-	//input  testInput
-	//output testOutput
 }
 
 func (suite *ServerTestSuite) SetupSuite() {
