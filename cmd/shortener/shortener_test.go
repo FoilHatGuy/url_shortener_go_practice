@@ -81,27 +81,26 @@ func (suite *ServerTestSuite) TestBatchRequest() {
 	srcReader := bytes.NewBuffer(reqBody)
 	fmt.Println("INPUT URL:\t", srcReader.String())
 
-	respP, err := suite.client.Post(cfg.Server.BaseURL+"/", "application/json", srcReader)
+	respP, err := suite.client.Post(cfg.Server.BaseURL+"/api/shorten/batch", "application/json", srcReader)
 	fmt.Println("POST response:\t\t", respP)
 	fmt.Println("POST error   :\t\t", err)
 	fmt.Println("current suite:\t\t", suite)
 	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusCreated, respP.StatusCode)
 
-	_, err = io.ReadAll(respP.Body)
 	suite.Assert().NoError(err)
 	var resBody []resElement
 	bodyR, err := io.ReadAll(respP.Body)
 	err = json.Unmarshal(bodyR, &resBody)
 
+	fmt.Println("response body: ", resBody[0].URL)
 	respG, err := suite.client.Get(resBody[0].URL)
 	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusTemporaryRedirect, respG.StatusCode)
 
-	suite.Assert().NoError(err)
-	fmt.Println("RESULT URL:\t", resBody)
-
-	suite.Equal(srcURL, resBody[0].URL)
+	bodyG := respG.Header.Get("Location")
+	fmt.Println("RESULT URL:\t", bodyG)
+	suite.Equal(srcURL, string(bodyG))
 
 	err = respP.Body.Close()
 	suite.Assert().NoError(err)

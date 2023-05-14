@@ -33,7 +33,7 @@ type engineT struct {
 
 type AuthEngine interface {
 	validate(string) (string, error)
-	generate() (string, string, error)
+	generate() (string, string)
 }
 
 func (e *engineT) validate(s string) (string, error) {
@@ -44,15 +44,15 @@ func (e *engineT) validate(s string) (string, error) {
 	return res, nil
 }
 
-func (e *engineT) generate() (string, string, error) {
+func (e *engineT) generate() (string, string) {
 
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", "", err
+		return "", ""
 	}
 	dst := make([]byte, aes.BlockSize)
 	e.crypt.Encrypt(dst, b)
 
-	return hex.EncodeToString(dst), hex.EncodeToString(b), nil
+	return hex.EncodeToString(dst), hex.EncodeToString(b)
 }
