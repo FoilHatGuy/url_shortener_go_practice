@@ -196,6 +196,8 @@ func (suite *ServerTestSuite) TestDeleteRequest() {
 
 	suite.Equal(srcURL, bodyG)
 
+	err = req.Body.Close()
+	suite.Assert().NoError(err)
 	err = respP.Body.Close()
 	suite.Assert().NoError(err)
 	err = respG.Body.Close()
