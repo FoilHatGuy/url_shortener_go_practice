@@ -34,6 +34,9 @@ func (suite *ServerTestSuite) TestPing() {
 	respG, err := suite.client.Get(cfg.Server.BaseURL + "/ping")
 	suite.Assert().NoError(err)
 	suite.Assert().Equal(http.StatusOK, respG.StatusCode)
+
+	err = respG.Body.Close()
+	suite.Assert().NoError(err)
 }
 
 func (suite *ServerTestSuite) TestGetPostRequest() {
@@ -65,6 +68,8 @@ func (suite *ServerTestSuite) TestGetPostRequest() {
 
 	err = respP.Body.Close()
 	suite.Assert().NoError(err)
+	err = respG.Body.Close()
+	suite.Assert().NoError(err)
 }
 
 func (suite *ServerTestSuite) TestBatchRequest() {
@@ -91,7 +96,9 @@ func (suite *ServerTestSuite) TestBatchRequest() {
 	suite.Assert().NoError(err)
 	var resBody []resElement
 	bodyR, err := io.ReadAll(respP.Body)
+	suite.Assert().NoError(err)
 	err = json.Unmarshal(bodyR, &resBody)
+	suite.Assert().NoError(err)
 
 	fmt.Println("response body: ", resBody[0].URL)
 	respG, err := suite.client.Get(resBody[0].URL)
@@ -103,6 +110,8 @@ func (suite *ServerTestSuite) TestBatchRequest() {
 	suite.Equal(srcURL, string(bodyG))
 
 	err = respP.Body.Close()
+	suite.Assert().NoError(err)
+	err = respG.Body.Close()
 	suite.Assert().NoError(err)
 }
 
