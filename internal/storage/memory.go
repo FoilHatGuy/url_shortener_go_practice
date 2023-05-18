@@ -95,8 +95,12 @@ func (s *storage) AddURL(_ context.Context, url string, owner string) (string, b
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	res := dataTVal{url, false}
 	s.Data.Store(short, res)
-	arr, _ := s.Owners.Load(owner)
-	s.Owners.Store(owner, append(arr.([]string), short))
+	arr, ok := s.Owners.Load(owner)
+	if ok {
+		s.Owners.Store(owner, append(arr.([]string), short))
+	} else {
+		s.Owners.Store(owner, []string{short})
+	}
 	return short, true, nil
 }
 
