@@ -11,45 +11,49 @@ import (
 	"path/filepath"
 	"shortener/internal/cfg"
 	"shortener/internal/urlgenerator"
+	"sync"
 )
 
 type dataTVal struct {
 	Short   string
 	Deleted bool
 }
-type dataT map[string]dataTVal
-type ownerT map[string][]string
+
+//type dataT map[string]dataTVal
+//type ownerT map[string][]string
 
 type storage struct {
-	Data   dataT  `json:"data"`
-	Owners ownerT `json:"owners"`
+	Data   sync.Map `json:"data"`
+	Owners sync.Map `json:"owners"`
 }
 
-func (s storage) Delete(_ context.Context, urls []string, owner string) error {
-	items := intersect.Hash(s.Owners[owner], urls)
+func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
+	user, _ := s.Owners.Load(owner)
+	items := intersect.Hash(user, urls)
+
 	for _, i := range items {
-		val := s.Data[i.(string)]
+		v, _ := s.Data.Load(i.(string))
+		val := v.(dataTVal)
 		val.Deleted = true
-		s.Data[i.(string)] = val
+		s.Data.Store(i.(string), val)
 	}
 	return nil
 }
 
-func (s storage) Ping(_ context.Context) bool {
+func (s *storage) Ping(_ context.Context) bool {
 	return true
 }
 
-func (s storage) Initialize() {
+func (s *storage) Initialize() {
 	s.loadData()
 }
 
-var memory DatabaseORM = storage{Data: make(dataT), Owners: make(ownerT)}
+var memory DatabaseORM = &storage{Data: sync.Map{}, Owners: sync.Map{}}
 
-func (s storage) saveData() error {
+func (s *storage) saveData() error {
 	if cfg.Storage.StorageType == "none" {
 		return nil
 	}
-	validateStruct(s)
 	validateFolder()
 	fmt.Print("SAVING\n")
 	if data, err := json.Marshal(s); err == nil {
@@ -62,16 +66,15 @@ func (s storage) saveData() error {
 	}
 	return nil
 }
-func (s storage) loadData() {
+func (s *storage) loadData() {
 	if cfg.Storage.StorageType == "none" {
 		return
 	}
-	validateStruct(s)
 	validateFolder()
 	fmt.Printf("DATA LOADING\n")
 	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
 		err := json.Unmarshal(file, &s)
-		fmt.Printf("LOADED %d URLS\n", len(s.Data))
+		fmt.Printf("LOADED URLS\n")
 		if err != nil {
 			return
 		}
@@ -87,32 +90,19 @@ func validateFolder() {
 		}
 	}
 }
-func validateStruct(s storage) {
-	if s.Data == nil {
-		s.Data = make(dataT)
-	}
-	if s.Owners == nil {
-		s.Owners = make(ownerT)
-	}
-}
 
-func (s storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
-	validateStruct(s)
+func (s *storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
 	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	res := dataTVal{url, false}
-	s.Data[short] = res
-	s.Owners[owner] = append(s.Owners[owner], short)
-	//err := s.saveData()
-	//if err != nil {
-	//	return "", false, err
-	//}
-	//s.shortURLs = append(s.shortURLs, short)
+	s.Data.Store(short, res)
+	arr, _ := s.Owners.Load(owner)
+	s.Owners.Store(owner, append(arr.([]string), short))
 	return short, true, nil
 }
 
-func (s storage) GetURL(_ context.Context, url string) (string, bool, error) {
-	validateStruct(s)
-	val, ok := s.Data[url]
+func (s *storage) GetURL(_ context.Context, url string) (string, bool, error) {
+	v, ok := s.Data.Load(url)
+	val := v.(dataTVal)
 	if ok {
 		if val.Deleted {
 			return "", true, nil
@@ -122,16 +112,18 @@ func (s storage) GetURL(_ context.Context, url string) (string, bool, error) {
 	return "", false, errors.New("no url")
 }
 
-func (s storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, error) {
+func (s *storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, error) {
 	var result []URLOfOwner
-	for _, address := range s.Owners[owner] {
+	user, _ := s.Owners.Load(owner)
+	for _, address := range user.([]string) {
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, URLOfOwner{fullAddr, s.Data[address].Short})
+		origUrl, ok := s.Data.Load(address)
+		if ok {
+			result = append(result, URLOfOwner{fullAddr, origUrl.(string)})
+		}
 	}
-
 	return result, nil
-
 }
