@@ -6,24 +6,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"shortener/internal/cfg"
+	"shortener/internal/server/handlers"
+	"shortener/internal/server/middleware"
 )
 
 func Run() {
 	r := gin.Default()
 	baseRouter := r.Group("")
 	{
-		baseRouter.Use(Gzip())
-		baseRouter.Use(Gunzip())
-		baseRouter.Use(Cooker())
-		baseRouter.GET("/:shortURL", getShortURL)
-		baseRouter.GET("/ping", pingDatabase)
-		baseRouter.POST("/", postURL)
+		baseRouter.Use(middleware.Gzip())
+		baseRouter.Use(middleware.Gunzip())
+		baseRouter.Use(middleware.Cooker())
+		baseRouter.GET("/:shortURL", handlers.GetShortURL)
+		baseRouter.GET("/ping", handlers.PingDatabase)
+		baseRouter.POST("/", handlers.PostURL)
 		api := baseRouter.Group("/api")
 		{
-			api.POST("/shorten", postAPIURL)
-			api.POST("/shorten/batch", batchShorten)
-			api.GET("/user/urls", getAllOwnedURL)
-			api.DELETE("/user/urls", deleteLine)
+			api.POST("/shorten", handlers.PostAPIURL)
+			api.POST("/shorten/batch", handlers.BatchShorten)
+			api.GET("/user/urls", handlers.GetAllOwnedURL)
+			api.DELETE("/user/urls", handlers.DeleteLine)
 		}
 	}
 	pprof.Register(r)

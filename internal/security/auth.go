@@ -1,4 +1,4 @@
-package server
+package security
 
 import (
 	"crypto/aes"
@@ -10,7 +10,7 @@ import (
 	"shortener/internal/cfg"
 )
 
-var engine AuthEngine
+var AuthEngine SIDValidator
 
 func init() {
 	key := sha256.Sum256([]byte(cfg.Shortener.Secret))
@@ -20,7 +20,7 @@ func init() {
 		return
 	}
 
-	engine = &engineT{
+	AuthEngine = &engineT{
 		crypt:  aesBlock,
 		secret: key[:],
 	}
@@ -31,12 +31,12 @@ type engineT struct {
 	secret []byte
 }
 
-type AuthEngine interface {
-	validate(string) (string, error)
-	generate() (string, string)
+type SIDValidator interface {
+	Validate(string) (string, error)
+	Generate() (string, string)
 }
 
-func (e *engineT) validate(s string) (string, error) {
+func (e *engineT) Validate(s string) (string, error) {
 	src, _ := hex.DecodeString(s)
 	dst := make([]byte, aes.BlockSize)
 	e.crypt.Decrypt(dst, src)
@@ -44,7 +44,7 @@ func (e *engineT) validate(s string) (string, error) {
 	return res, nil
 }
 
-func (e *engineT) generate() (string, string) {
+func (e *engineT) Generate() (string, string) {
 
 	b := make([]byte, 16)
 	_, err := rand.Read(b)

@@ -19,12 +19,9 @@ type dataTVal struct {
 	Deleted bool
 }
 
-//type dataT map[string]dataTVal
-//type ownerT map[string][]string
-
 type storage struct {
-	Data   sync.Map `json:"data"`
-	Owners sync.Map `json:"owners"`
+	Data   sync.Map `json:"data"`   // map[string]dataTVal
+	Owners sync.Map `json:"owners"` // map[string][]string
 }
 
 func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
