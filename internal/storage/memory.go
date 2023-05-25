@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"shortener/internal/cfg"
 	"sync"
-	"time"
 )
 
 type dataTVal struct {
@@ -44,16 +43,16 @@ func (s *storage) Ping(_ context.Context) bool {
 
 func (s *storage) Initialize() {
 	s.loadData()
-	interval := s.config.Storage.AutosaveInterval
-	if interval > 0 {
-		go func(s *storage, inter int) {
-			err := s.saveData()
-			if err != nil {
-				time.Sleep(10 * time.Second)
-			}
-			time.Sleep(time.Duration(inter) * time.Second)
-		}(s, interval)
-	}
+	//interval := s.config.Storage.AutosaveInterval
+	//if interval > 0 {
+	//	go func(s *storage, inter int) {
+	//		err := s.saveData()
+	//		if err != nil {
+	//			time.Sleep(10 * time.Second)
+	//		}
+	//		time.Sleep(time.Duration(inter) * time.Second)
+	//	}(s, interval)
+	//}
 }
 
 func (s *storage) saveData() error {

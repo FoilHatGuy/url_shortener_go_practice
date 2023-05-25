@@ -17,10 +17,11 @@ type MemoryTestSuite struct {
 }
 
 func (s *MemoryTestSuite) SetupTest() {
-	s.config = cfg.Initialize()
-	s.config.Storage.StorageType = "file"
-	s.config.Storage.SavePath = "../data"
-	s.config.Storage.AutosaveInterval = 5
+	config := cfg.Initialize()
+	config.Storage.StorageType = "file"
+	config.Storage.SavePath = "../data"
+	config.Storage.AutosaveInterval = 5
+	s.config = config
 	Initialize(s.config)
 	s.ctrl = Controller
 	s.ctx = context.Background()
