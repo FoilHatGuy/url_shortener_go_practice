@@ -28,7 +28,7 @@ type URLOfOwner struct {
 }
 type DatabaseORM interface {
 	Initialize()
-	AddURL(ctx context.Context, original string, short string, user string) (ok bool, err error)
+	AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error)
 	GetURL(ctx context.Context, short string) (original string, ok bool, err error)
 	GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error)
 	Ping(ctx context.Context) (ok bool)

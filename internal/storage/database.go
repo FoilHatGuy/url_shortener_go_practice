@@ -89,8 +89,7 @@ func (d databaseT) Initialize() {
 	}
 }
 
-func (d databaseT) AddURL(ctx context.Context, original string, short string, user string) (ok bool, err error) {
-	added := false
+func (d databaseT) AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error) {
 	var shortURL, originalURL string
 
 	_, err = d.database.Exec(ctx, `
@@ -99,7 +98,7 @@ func (d databaseT) AddURL(ctx context.Context, original string, short string, us
 `, short, original)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return false, err
+		return false, "", err
 	}
 	err = d.database.QueryRow(ctx, `
 		SELECT short_url, original_url FROM urls
@@ -107,23 +106,40 @@ func (d databaseT) AddURL(ctx context.Context, original string, short string, us
 	`, original).Scan(&shortURL, &originalURL)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return false, err
+		return false, "", err
 	}
 
 	if short != shortURL {
 		fmt.Println("RESULT:", shortURL, originalURL)
+		return false, shortURL, nil
+	}
 
-	} else {
-		_, err = d.database.Exec(ctx, `
+	_, err = d.database.Exec(ctx, `
 			INSERT INTO users VALUES($1, $2) 
 		`, user, short)
-		if err != nil {
-			fmt.Println("ERR", err)
-			return false, err
-		}
-		added = true
+	if err != nil {
+		fmt.Println("ERR", err)
+		return false, "", err
 	}
-	return added, nil
+
+	return true, "", nil
+}
+
+func (d databaseT) GetByOriginalURL(ctx context.Context, original string) (shortURL string, ok bool, err error) {
+	var deleted bool
+	err = d.database.QueryRow(ctx, `
+		SELECT short_url, deleted FROM urls
+		WHERE original_url = $1
+	`, original).Scan(&shortURL, &deleted)
+	fmt.Println(err, "\n", shortURL, "\n", original, "\n", deleted)
+	if deleted {
+		return "", true, nil
+	}
+	if err != nil {
+		fmt.Println("ERR", err)
+		return "", false, err
+	}
+	return shortURL, true, err
 }
 
 func (d databaseT) GetURL(ctx context.Context, short string) (original string, ok bool, err error) {

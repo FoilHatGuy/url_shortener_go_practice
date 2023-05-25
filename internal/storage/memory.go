@@ -99,16 +99,16 @@ func validateFolder(config *cfg.ConfigT) {
 	}
 }
 
-func (s *storage) AddURL(_ context.Context, url string, short string, owner string) (added bool, err error) {
-	res := dataTVal{url, false}
+func (s *storage) AddURL(_ context.Context, original string, short string, user string) (ok bool, existing string, err error) {
+	res := dataTVal{original, false}
 	s.Data.Store(short, res)
-	arr, ok := s.Owners.Load(owner)
+	arr, ok := s.Owners.Load(user)
 	if ok {
-		s.Owners.Store(owner, append(arr.([]string), short))
+		s.Owners.Store(user, append(arr.([]string), short))
 	} else {
-		s.Owners.Store(owner, []string{short})
+		s.Owners.Store(user, []string{short})
 	}
-	return true, nil
+	return true, existing, nil
 }
 
 func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {

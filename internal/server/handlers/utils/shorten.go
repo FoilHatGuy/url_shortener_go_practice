@@ -22,7 +22,7 @@ func Shorten(ctx context.Context, inputURL string, owner string) (string, bool, 
 	}
 
 	shortURL := RandSeq(config.Shortener.URLLength)
-	added, err := storage.Controller.AddURL(ctx, inputURL, shortURL, owner)
+	added, shortURL, err := storage.Controller.AddURL(ctx, inputURL, shortURL, owner)
 	if err != nil {
 		return "", added, err
 	}
