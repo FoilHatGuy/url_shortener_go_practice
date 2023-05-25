@@ -9,10 +9,10 @@ import (
 
 var config *cfg.ConfigT
 
-func init() {
-	config = cfg.Initialize()
-}
 func Cooker() gin.HandlerFunc {
+	if config == nil {
+		config = cfg.Initialize()
+	}
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("user")
 		var key string

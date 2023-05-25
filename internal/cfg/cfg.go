@@ -44,19 +44,19 @@ func Initialize() *ConfigT {
 		genv.Key("BASE_URL").Default("NO SUCH FIELD").String(),
 		genv.Key("FILE_STORAGE_PATH").Default("NO SUCH FIELD").String())
 	config = &ConfigT{
-		Shortener: shortCfg{
+		Shortener: ShortCfg{
 			Secret:    genv.Key("SECRET").Default("12345qwerty").String(),
 			URLLength: genv.Key("SHORT_URL_LENGTH").Default(10).Int(),
 		},
 
-		Server: serverCfg{
+		Server: ServerCfg{
 			Address:        genv.Key("SERVER_ADDRESS").Default(serverAdress).String(),
 			Port:           genv.Key("SERVER_PORT").Default("8080").String(),
 			BaseURL:        genv.Key("BASE_URL").Default(baseURL).String(),
 			CookieLifetime: 30 * 24 * 60 * 60,
 		},
 
-		Storage: storageCfg{
+		Storage: StorageCfg{
 			AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(1).Int(),
 			SavePath:         genv.Key("FILE_STORAGE_PATH").Default(fileStoragePath).String(),
 			StorageType:      genv.Key("STORAGE_TYPE").Default(storageType).String(),

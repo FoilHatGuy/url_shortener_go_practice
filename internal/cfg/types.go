@@ -1,22 +1,22 @@
 package cfg
 
 type ConfigT struct {
-	Shortener shortCfg
-	Server    serverCfg
-	Storage   storageCfg
+	Shortener ShortCfg
+	Server    ServerCfg
+	Storage   StorageCfg
 }
-type shortCfg struct {
+type ShortCfg struct {
 	Secret    string
 	URLLength int
 }
 
-type serverCfg struct {
+type ServerCfg struct {
 	Address        string
 	Port           string
 	BaseURL        string
 	CookieLifetime int
 }
-type storageCfg struct {
+type StorageCfg struct {
 	AutosaveInterval int
 	SavePath         string
 	StorageType      string

@@ -11,10 +11,10 @@ import (
 
 var config *cfg.ConfigT
 
-func init() {
-	config = cfg.Initialize()
-}
 func Shorten(ctx context.Context, inputURL string, owner string) (string, bool, error) {
+	if config == nil {
+		config = cfg.Initialize()
+	}
 
 	_, err := url.Parse(inputURL)
 	if err != nil {

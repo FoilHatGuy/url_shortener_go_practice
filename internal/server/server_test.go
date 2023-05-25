@@ -10,6 +10,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"shortener/internal/cfg"
+	"shortener/internal/security"
 	"shortener/internal/storage"
 	"testing"
 	"time"
@@ -23,10 +24,11 @@ type ServerTestSuite struct {
 
 func (s *ServerTestSuite) SetupSuite() {
 	config := cfg.Initialize()
+	security.Init(config)
 	s.config = config
 	s.config.Storage.StorageType = "none"
 	storage.Initialize(config)
-	Run(config)
+	go Run(config)
 	s.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -188,8 +190,6 @@ func (s *ServerTestSuite) TestDeleteRequest() {
 	s.Assert().NoError(err)
 	resp, err := s.client.Do(req)
 	s.Assert().NoError(err)
-	err = resp.Body.Close()
-	s.Assert().NoError(err)
 
 	respG, err := s.client.Get(string(bodyP))
 	s.Assert().NoError(err)
@@ -200,6 +200,8 @@ func (s *ServerTestSuite) TestDeleteRequest() {
 
 	s.Equal(srcURL, bodyG)
 
+	err = resp.Body.Close()
+	s.Assert().NoError(err)
 	err = req.Body.Close()
 	s.Assert().NoError(err)
 	err = respP.Body.Close()
@@ -211,6 +213,6 @@ func (s *ServerTestSuite) TestDeleteRequest() {
 func (s *ServerTestSuite) TestGetUserRequest() {
 }
 
-func TestExampleTestSuite(t *testing.T) {
+func TestServerTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }

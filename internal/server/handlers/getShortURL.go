@@ -10,13 +10,12 @@ import (
 
 var config *cfg.ConfigT
 
-func init() {
-	config = cfg.Initialize()
-}
-
 // GetShortURL
 // Get the original url by the short url
 func GetShortURL(c *gin.Context) {
+	if config == nil {
+		config = cfg.Initialize()
+	}
 	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
 	if len(inputURL) != config.Shortener.URLLength {
