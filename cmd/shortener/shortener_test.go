@@ -184,9 +184,9 @@ func (suite *ServerTestSuite) TestDeleteRequest() {
 	b := bytes.NewBuffer(bodyP)
 	req, err := http.NewRequest("DELETE", cfg.Server.BaseURL+"/user/urls", b)
 	suite.Assert().NoError(err)
-	_, err = suite.client.Do(req)
+	resp, err := suite.client.Do(req)
 	suite.Assert().NoError(err)
-	err = req.Body.Close()
+	err = resp.Body.Close()
 	suite.Assert().NoError(err)
 
 	respG, err := suite.client.Get(string(bodyP))
