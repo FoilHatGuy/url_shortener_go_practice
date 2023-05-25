@@ -57,7 +57,7 @@ func Initialize() *ConfigT {
 		},
 
 		Storage: StorageCfg{
-			AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(1).Int(),
+			AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(-1).Int(),
 			SavePath:         genv.Key("FILE_STORAGE_PATH").Default(fileStoragePath).String(),
 			StorageType:      genv.Key("STORAGE_TYPE").Default(storageType).String(),
 			DatabaseDSN:      databaseDSN,

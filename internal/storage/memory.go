@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"shortener/internal/cfg"
 	"sync"
+	"time"
 )
 
 type dataTVal struct {
@@ -37,25 +38,22 @@ type storage struct {
 	config *cfg.ConfigT
 }
 
-func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
-	user, _ := s.Owners.Load(owner)
-	items := intersect.Hash(user, urls)
-
-	for _, i := range items {
-		v, _ := s.Data.Load(i.(string))
-		val := v.(dataTVal)
-		val.Deleted = true
-		s.Data.Store(i.(string), val)
-	}
-	return nil
-}
-
 func (s *storage) Ping(_ context.Context) bool {
 	return true
 }
 
 func (s *storage) Initialize() {
 	s.loadData()
+	interval := s.config.Storage.AutosaveInterval
+	if interval > 0 {
+		go func(s *storage, inter int) {
+			err := s.saveData()
+			if err != nil {
+				time.Sleep(10 * time.Second)
+			}
+			time.Sleep(time.Duration(inter) * time.Second)
+		}(s, interval)
+	}
 }
 
 func (s *storage) saveData() error {
@@ -113,12 +111,15 @@ func (s *storage) AddURL(_ context.Context, original string, short string, user 
 
 func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {
 	v, ok := s.Data.Load(url)
+	if v == nil {
+		return "", false, errors.New("no url")
+	}
 	val := v.(dataTVal)
 	if ok {
 		if val.Deleted {
 			return "", true, nil
 		}
-		return val.Original, false, nil
+		return val.Original, true, nil
 	}
 	return "", false, errors.New("no url")
 }
@@ -141,4 +142,21 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOw
 		}
 	}
 	return result, nil
+}
+
+func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
+	v, _ := s.Owners.Load(owner)
+	if v == nil {
+		return fmt.Errorf("no user")
+	}
+	userData := v.([]string)
+	items := intersect.Hash(userData, urls)
+
+	for _, i := range items {
+		v, _ := s.Data.Load(i.(string))
+		val := v.(dataTVal)
+		val.Deleted = true
+		s.Data.Store(i.(string), val)
+	}
+	return nil
 }

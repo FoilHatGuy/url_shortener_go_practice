@@ -14,9 +14,7 @@ func Initialize(config *cfg.ConfigT) {
 		if Controller == nil {
 			Controller = getMemoryController(config)
 		}
-	case "none":
-		fallthrough
-	case "file":
+	default:
 		Controller = getMemoryController(config)
 	}
 	Controller.Initialize()
