@@ -120,9 +120,12 @@ func (s *storage) GetURL(_ context.Context, url string) (original string, ok boo
 	return "", false, errors.New("no url")
 }
 
-func (s *storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, error) {
+func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOwner, err error) {
 	var result []URLOfOwner
-	user, _ := s.Owners.Load(owner)
+	user, ok := s.Owners.Load(owner)
+	if !ok {
+		return nil, nil
+	}
 	for _, address := range user.([]string) {
 		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
 		if err != nil {
