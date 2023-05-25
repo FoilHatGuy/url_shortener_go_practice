@@ -15,8 +15,8 @@ import (
 )
 
 type dataTVal struct {
-	Short   string
-	Deleted bool
+	Original string
+	Deleted  bool
 }
 
 var memoryController DatabaseORM
@@ -95,8 +95,8 @@ func validateFolder() {
 	}
 }
 
-func (s *storage) AddURL(_ context.Context, url string, owner string) (string, bool, error) {
-	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
+func (s *storage) AddURL(_ context.Context, url string, owner string) (short string, added bool, err error) {
+	short = urlgenerator.RandSeq(cfg.Shortener.URLLength)
 	res := dataTVal{url, false}
 	s.Data.Store(short, res)
 	arr, ok := s.Owners.Load(owner)
@@ -108,14 +108,14 @@ func (s *storage) AddURL(_ context.Context, url string, owner string) (string, b
 	return short, true, nil
 }
 
-func (s *storage) GetURL(_ context.Context, url string) (string, bool, error) {
+func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {
 	v, ok := s.Data.Load(url)
 	val := v.(dataTVal)
 	if ok {
 		if val.Deleted {
 			return "", true, nil
 		}
-		return val.Short, false, nil
+		return val.Original, false, nil
 	}
 	return "", false, errors.New("no url")
 }
@@ -128,9 +128,10 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, 
 		if err != nil {
 			return nil, err
 		}
-		origURL, ok := s.Data.Load(address)
+		v, ok := s.Data.Load(address)
 		if ok {
-			result = append(result, URLOfOwner{fullAddr, origURL.(string)})
+			origURL := v.(dataTVal).Original
+			result = append(result, URLOfOwner{fullAddr, origURL})
 		}
 	}
 	return result, nil
