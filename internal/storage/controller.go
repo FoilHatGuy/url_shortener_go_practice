@@ -5,27 +5,20 @@ import (
 	"shortener/internal/cfg"
 )
 
-type controllerT struct {
-	memory   DatabaseORM
-	database DatabaseORM
-}
-
 var Controller DatabaseORM
 
 func Initialize() {
 	switch cfg.Storage.StorageType {
+	case "database":
+		Controller = databaseInitialize()
+		if Controller == nil {
+			Controller = getMemoryController()
+		}
 	case "none":
 		fallthrough
 	case "file":
-		Controller = memory
-		//fallthrough
-	case "database":
-		Controller = databaseInitialize()
+		Controller = getMemoryController()
 	}
-	//Controller = controllerT{
-	//	memory:   memory,
-	//	database: databaseInitialize(),
-	//}
 	Controller.Initialize()
 }
 

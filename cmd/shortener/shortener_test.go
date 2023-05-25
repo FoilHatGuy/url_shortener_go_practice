@@ -186,6 +186,8 @@ func (suite *ServerTestSuite) TestDeleteRequest() {
 	suite.Assert().NoError(err)
 	_, err = suite.client.Do(req)
 	suite.Assert().NoError(err)
+	err = req.Body.Close()
+	suite.Assert().NoError(err)
 
 	respG, err := suite.client.Get(string(bodyP))
 	suite.Assert().NoError(err)

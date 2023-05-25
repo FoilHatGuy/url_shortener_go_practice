@@ -19,6 +19,15 @@ type dataTVal struct {
 	Deleted bool
 }
 
+var memoryController DatabaseORM
+
+func getMemoryController() DatabaseORM {
+	if memoryController == nil {
+		memoryController = &storage{Data: sync.Map{}, Owners: sync.Map{}}
+	}
+	return memoryController
+}
+
 type storage struct {
 	Data   sync.Map `json:"data"`   // map[string]dataTVal
 	Owners sync.Map `json:"owners"` // map[string][]string
@@ -44,8 +53,6 @@ func (s *storage) Ping(_ context.Context) bool {
 func (s *storage) Initialize() {
 	s.loadData()
 }
-
-var memory DatabaseORM = &storage{Data: sync.Map{}, Owners: sync.Map{}}
 
 func (s *storage) saveData() error {
 	if cfg.Storage.StorageType == "none" {
@@ -121,9 +128,9 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) ([]URLOfOwner, 
 		if err != nil {
 			return nil, err
 		}
-		origUrl, ok := s.Data.Load(address)
+		origURL, ok := s.Data.Load(address)
 		if ok {
-			result = append(result, URLOfOwner{fullAddr, origUrl.(string)})
+			result = append(result, URLOfOwner{fullAddr, origURL.(string)})
 		}
 	}
 	return result, nil

@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"shortener/internal/cfg"
-	. "shortener/internal/security"
+	sec "shortener/internal/security"
 )
 
 func Cooker() gin.HandlerFunc {
@@ -13,7 +13,7 @@ func Cooker() gin.HandlerFunc {
 		if err == nil {
 			//fmt.Println("UID COOKIE PRESENT:\n", cookie)
 
-			key, err = AuthEngine.Validate(cookie)
+			key, err = sec.AuthEngine.Validate(cookie)
 			//fmt.Println("VALIDATION RESULT:\n", key, err)
 			if err == nil {
 				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.BaseURL, false, true)
@@ -24,7 +24,7 @@ func Cooker() gin.HandlerFunc {
 			}
 		}
 		//fmt.Println("UID COOKIE MET ERROR:\n", err)
-		cookie, key = AuthEngine.Generate()
+		cookie, key = sec.AuthEngine.Generate()
 		//fmt.Println("NEW COOKIE GENERATED:\n", cookie)
 		//fmt.Println("NEW UID KEY:\n", key)
 		c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.BaseURL, false, true)
