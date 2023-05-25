@@ -111,11 +111,8 @@ func (s *storage) AddURL(_ context.Context, original string, short string, user 
 
 func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {
 	v, ok := s.Data.Load(url)
-	if v == nil {
-		return "", false, errors.New("no url")
-	}
-	val := v.(dataTVal)
 	if ok {
+		val := v.(dataTVal)
 		if val.Deleted {
 			return "", true, nil
 		}
