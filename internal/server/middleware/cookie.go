@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"shortener/internal/cfg"
 	sec "shortener/internal/security"
+	"strings"
 )
 
 func Cooker() gin.HandlerFunc {
@@ -16,7 +17,8 @@ func Cooker() gin.HandlerFunc {
 			key, err = sec.AuthEngine.Validate(cookie)
 			//fmt.Println("VALIDATION RESULT:\n", key, err)
 			if err == nil {
-				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.BaseURL, false, true)
+				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/",
+					strings.Split(cfg.Server.Address, ":")[0], false, true)
 				c.Set("owner", key)
 				//fmt.Println("UID KEY:\n", key)
 				c.Next()
