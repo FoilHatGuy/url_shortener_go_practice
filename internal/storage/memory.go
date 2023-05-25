@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"shortener/internal/cfg"
-	"shortener/internal/urlgenerator"
 	"sync"
 )
 
@@ -21,9 +20,13 @@ type dataTVal struct {
 
 var memoryController DatabaseORM
 
-func getMemoryController() DatabaseORM {
+func getMemoryController(config *cfg.ConfigT) DatabaseORM {
 	if memoryController == nil {
-		memoryController = &storage{Data: sync.Map{}, Owners: sync.Map{}}
+		memoryController = &storage{
+			Data:   sync.Map{},
+			Owners: sync.Map{},
+			config: config,
+		}
 	}
 	return memoryController
 }
@@ -31,6 +34,7 @@ func getMemoryController() DatabaseORM {
 type storage struct {
 	Data   sync.Map `json:"data"`   // map[string]dataTVal
 	Owners sync.Map `json:"owners"` // map[string][]string
+	config *cfg.ConfigT
 }
 
 func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
@@ -55,14 +59,14 @@ func (s *storage) Initialize() {
 }
 
 func (s *storage) saveData() error {
-	if cfg.Storage.StorageType == "none" {
+	if s.config.Storage.StorageType == "none" {
 		return nil
 	}
-	validateFolder()
+	validateFolder(s.config)
 	fmt.Print("SAVING\n")
 	if data, err := json.Marshal(s); err == nil {
 		//fmt.Printf("WRITING %v\n", data)
-		err := os.WriteFile(cfg.Storage.SavePath, data, os.ModePerm)
+		err := os.WriteFile(s.config.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -71,12 +75,12 @@ func (s *storage) saveData() error {
 	return nil
 }
 func (s *storage) loadData() {
-	if cfg.Storage.StorageType == "none" {
+	if s.config.Storage.StorageType == "none" {
 		return
 	}
-	validateFolder()
+	validateFolder(s.config)
 	fmt.Printf("DATA LOADING\n")
-	if file, err := os.ReadFile(cfg.Storage.SavePath); err == nil {
+	if file, err := os.ReadFile(s.config.Storage.SavePath); err == nil {
 		err := json.Unmarshal(file, &s)
 		fmt.Printf("LOADED URLS\n")
 		if err != nil {
@@ -85,18 +89,17 @@ func (s *storage) loadData() {
 	}
 }
 
-func validateFolder() {
-	if _, err := os.Stat(cfg.Storage.SavePath); os.IsNotExist(err) {
+func validateFolder(config *cfg.ConfigT) {
+	if _, err := os.Stat(config.Storage.SavePath); os.IsNotExist(err) {
 		fmt.Println("FOLDER DOESN'T EXIST, ")
-		err := os.MkdirAll(filepath.Dir(cfg.Storage.SavePath), os.ModePerm)
+		err := os.MkdirAll(filepath.Dir(config.Storage.SavePath), os.ModePerm)
 		if err != nil {
 			return
 		}
 	}
 }
 
-func (s *storage) AddURL(_ context.Context, url string, owner string) (short string, added bool, err error) {
-	short = urlgenerator.RandSeq(cfg.Shortener.URLLength)
+func (s *storage) AddURL(_ context.Context, url string, short string, owner string) (added bool, err error) {
 	res := dataTVal{url, false}
 	s.Data.Store(short, res)
 	arr, ok := s.Owners.Load(owner)
@@ -105,7 +108,7 @@ func (s *storage) AddURL(_ context.Context, url string, owner string) (short str
 	} else {
 		s.Owners.Store(owner, []string{short})
 	}
-	return short, true, nil
+	return true, nil
 }
 
 func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {
@@ -127,7 +130,7 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOw
 		return nil, nil
 	}
 	for _, address := range user.([]string) {
-		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, address)
+		fullAddr, err := url.JoinPath(s.config.Server.BaseURL, address)
 		if err != nil {
 			return nil, err
 		}

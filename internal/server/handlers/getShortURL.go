@@ -8,12 +8,18 @@ import (
 	"shortener/internal/storage"
 )
 
+var config *cfg.ConfigT
+
+func init() {
+	config = cfg.Initialize()
+}
+
 // GetShortURL
 // Get the original url by the short url
 func GetShortURL(c *gin.Context) {
 	inputURL := c.Params.ByName("shortURL")
 	fmt.Printf("Input url: %q\n", inputURL)
-	if len(inputURL) != cfg.Shortener.URLLength {
+	if len(inputURL) != config.Shortener.URLLength {
 		c.Status(http.StatusBadRequest)
 		return
 	}

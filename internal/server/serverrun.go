@@ -10,7 +10,7 @@ import (
 	"shortener/internal/server/middleware"
 )
 
-func Run() {
+func Run(config *cfg.ConfigT) {
 	r := gin.Default()
 	baseRouter := r.Group("")
 	{
@@ -29,6 +29,6 @@ func Run() {
 		}
 	}
 	pprof.Register(r)
-	fmt.Println("SERVER LISTENING ON", cfg.Server.Address)
-	log.Fatal(r.Run(cfg.Server.Address))
+	fmt.Println("SERVER LISTENING ON", config.Server.Address)
+	log.Fatal(r.Run(config.Server.Address))
 }

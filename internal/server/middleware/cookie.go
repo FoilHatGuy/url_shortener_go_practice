@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+var config *cfg.ConfigT
+
+func init() {
+	config = cfg.Initialize()
+}
 func Cooker() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Cookie("user")
@@ -17,8 +22,8 @@ func Cooker() gin.HandlerFunc {
 			key, err = sec.AuthEngine.Validate(cookie)
 			//fmt.Println("VALIDATION RESULT:\n", key, err)
 			if err == nil {
-				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/",
-					strings.Split(cfg.Server.Address, ":")[0], false, true)
+				c.SetCookie("user", cookie, config.Server.CookieLifetime, "/",
+					strings.Split(config.Server.Address, ":")[0], false, true)
 				c.Set("owner", key)
 				//fmt.Println("UID KEY:\n", key)
 				c.Next()
@@ -29,7 +34,7 @@ func Cooker() gin.HandlerFunc {
 		cookie, key = sec.AuthEngine.Generate()
 		//fmt.Println("NEW COOKIE GENERATED:\n", cookie)
 		//fmt.Println("NEW UID KEY:\n", key)
-		c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.BaseURL, false, true)
+		c.SetCookie("user", cookie, config.Server.CookieLifetime, "/", config.Server.BaseURL, false, true)
 		c.Set("owner", key)
 		c.Next()
 	}

@@ -34,7 +34,7 @@ func BatchShorten(c *gin.Context) {
 	}
 
 	for _, element := range newReqBody {
-		result, _, err := utils.Shorten(element.URL, owner.(string), c)
+		result, _, err := utils.Shorten(c, element.URL, owner.(string))
 		if err != nil {
 			c.Status(http.StatusBadRequest)
 			return

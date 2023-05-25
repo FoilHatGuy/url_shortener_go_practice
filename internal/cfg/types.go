@@ -1,5 +1,10 @@
 package cfg
 
+type ConfigT struct {
+	Shortener shortCfg
+	Server    serverCfg
+	Storage   storageCfg
+}
 type shortCfg struct {
 	Secret    string
 	URLLength int

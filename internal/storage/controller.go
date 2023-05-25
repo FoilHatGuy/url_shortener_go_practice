@@ -7,17 +7,17 @@ import (
 
 var Controller DatabaseORM
 
-func Initialize() {
-	switch cfg.Storage.StorageType {
+func Initialize(config *cfg.ConfigT) {
+	switch config.Storage.StorageType {
 	case "database":
-		Controller = databaseInitialize()
+		Controller = databaseInitialize(config)
 		if Controller == nil {
-			Controller = getMemoryController()
+			Controller = getMemoryController(config)
 		}
 	case "none":
 		fallthrough
 	case "file":
-		Controller = getMemoryController()
+		Controller = getMemoryController(config)
 	}
 	Controller.Initialize()
 }
@@ -28,9 +28,9 @@ type URLOfOwner struct {
 }
 type DatabaseORM interface {
 	Initialize()
-	AddURL(context.Context, string, string) (string, bool, error)
-	GetURL(context.Context, string) (string, bool, error)
-	GetURLByOwner(context.Context, string) ([]URLOfOwner, error)
-	Ping(context.Context) bool
-	Delete(context.Context, []string, string) error
+	AddURL(ctx context.Context, original string, short string, user string) (ok bool, err error)
+	GetURL(ctx context.Context, short string) (original string, ok bool, err error)
+	GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error)
+	Ping(ctx context.Context) (ok bool)
+	Delete(ctx context.Context, stringArray []string, owner string) (err error)
 }

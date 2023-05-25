@@ -9,13 +9,20 @@ import (
 	"shortener/internal/storage"
 )
 
-func Shorten(inputURL string, owner string, ctx context.Context) (string, bool, error) {
+var config *cfg.ConfigT
+
+func init() {
+	config = cfg.Initialize()
+}
+func Shorten(ctx context.Context, inputURL string, owner string) (string, bool, error) {
 
 	_, err := url.Parse(inputURL)
 	if err != nil {
 		return "", false, errors.New("bad URL")
 	}
-	shortURL, added, err := storage.Controller.AddURL(ctx, inputURL, owner)
+
+	shortURL := RandSeq(config.Shortener.URLLength)
+	added, err := storage.Controller.AddURL(ctx, inputURL, shortURL, owner)
 	if err != nil {
 		return "", added, err
 	}
@@ -23,7 +30,7 @@ func Shorten(inputURL string, owner string, ctx context.Context) (string, bool, 
 	fmt.Printf("Input url: %s\n", inputURL)
 	fmt.Printf("Short url: %s\n\n", shortURL)
 
-	result, _ := url.Parse(cfg.Server.BaseURL)
+	result, _ := url.Parse(config.Server.BaseURL)
 	result = result.JoinPath(shortURL)
 	return result.String(), added, nil
 }

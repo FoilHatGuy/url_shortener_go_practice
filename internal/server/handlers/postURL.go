@@ -23,7 +23,7 @@ func PostURL(c *gin.Context) {
 		return
 	}
 
-	result, added, err := utils.Shorten(inputURL, owner.(string), c)
+	result, added, err := utils.Shorten(c, inputURL, owner.(string))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return

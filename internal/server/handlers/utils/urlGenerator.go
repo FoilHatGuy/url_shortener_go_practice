@@ -1,4 +1,4 @@
-package urlgenerator
+package utils
 
 import (
 	"crypto/rand"

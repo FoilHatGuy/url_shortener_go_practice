@@ -2,6 +2,7 @@ package main
 
 import (
 	"shortener/internal/cfg"
+	"shortener/internal/security"
 	"shortener/internal/server"
 	"shortener/internal/storage"
 )
@@ -10,7 +11,8 @@ import (
 //}
 
 func main() {
-	cfg.Initialize()
-	storage.Initialize()
-	server.Run()
+	cfgData := cfg.Initialize()
+	security.Init(cfgData)
+	storage.Initialize(cfgData)
+	server.Run(cfgData)
 }

@@ -10,37 +10,37 @@ import (
 	"net/url"
 	"regexp"
 	"shortener/internal/cfg"
-	"shortener/internal/urlgenerator"
 	"strings"
 )
 
 type databaseT struct {
 	database *pgxpool.Pool
+	config   *cfg.ConfigT
 }
 
-func databaseInitialize() DatabaseORM {
-	if cfg.Storage.DatabaseDSN == "" {
+func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
+	if config.Storage.DatabaseDSN == "" {
 		return nil
 	}
 	fmt.Println("CREATING DATABASE")
 	r := regexp.MustCompile(`dbname=[a-zA-Z0-9]*`)
-	initAddress := r.ReplaceAllString(cfg.Storage.DatabaseDSN, "")
+	initAddress := r.ReplaceAllString(config.Storage.DatabaseDSN, "")
 	fmt.Println(initAddress)
 	initDB, err := pgx.Connect(context.Background(), initAddress)
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
-	config, err := pgx.ParseConfig(cfg.Storage.DatabaseDSN)
+	dbConf, err := pgx.ParseConfig(config.Storage.DatabaseDSN)
 	if err != nil {
 		return nil
 	}
 
-	fmt.Println(config.Config.Database)
+	fmt.Println(dbConf.Config.Database)
 
 	_, err = initDB.Exec(context.Background(), `
 		CREATE DATABASE 
-	`+config.Config.Database)
+	`+dbConf.Config.Database)
 	//
 	//-- 		SELECT 'CREATE DATABASE shortener'
 	//-- 		WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = $1)
@@ -54,11 +54,11 @@ func databaseInitialize() DatabaseORM {
 		return nil
 	}
 
-	db, err := pgxpool.New(context.Background(), cfg.Storage.DatabaseDSN)
+	db, err := pgxpool.New(context.Background(), config.Storage.DatabaseDSN)
 	if err != nil && !errors.Is(err, new(pgconn.PgError)) {
 		return nil
 	}
-	return databaseT{database: db}
+	return databaseT{database: db, config: config}
 }
 func (d databaseT) Initialize() {
 	exec, err := d.database.Exec(context.Background(), `
@@ -89,26 +89,25 @@ func (d databaseT) Initialize() {
 	}
 }
 
-func (d databaseT) AddURL(ctx context.Context, url string, owner string) (string, bool, error) {
-	short := urlgenerator.RandSeq(cfg.Shortener.URLLength)
+func (d databaseT) AddURL(ctx context.Context, original string, short string, user string) (ok bool, err error) {
 	added := false
 	var shortURL, originalURL string
 
-	_, err := d.database.Exec(ctx, `
+	_, err = d.database.Exec(ctx, `
 	INSERT INTO urls VALUES($1, $2, FALSE) 
 	ON CONFLICT DO NOTHING
-`, short, url)
+`, short, original)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return "", false, err
+		return false, err
 	}
 	err = d.database.QueryRow(ctx, `
 		SELECT short_url, original_url FROM urls
 		WHERE original_url = $1
-	`, url).Scan(&shortURL, &originalURL)
+	`, original).Scan(&shortURL, &originalURL)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return "", false, err
+		return false, err
 	}
 
 	if short != shortURL {
@@ -117,20 +116,20 @@ func (d databaseT) AddURL(ctx context.Context, url string, owner string) (string
 	} else {
 		_, err = d.database.Exec(ctx, `
 			INSERT INTO users VALUES($1, $2) 
-		`, owner, short)
+		`, user, short)
 		if err != nil {
 			fmt.Println("ERR", err)
-			return "", false, err
+			return false, err
 		}
 		added = true
 	}
-	return shortURL, added, nil
+	return added, nil
 }
 
-func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, error) {
+func (d databaseT) GetURL(ctx context.Context, short string) (original string, ok bool, err error) {
 	var originalURL string
 	var deleted bool
-	err := d.database.QueryRow(ctx, `
+	err = d.database.QueryRow(ctx, `
 		SELECT original_url, deleted FROM urls
 		WHERE short_url = $1
 	`, short).Scan(&originalURL, &deleted)
@@ -145,7 +144,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (string, bool, erro
 	return originalURL, true, err
 }
 
-func (d databaseT) GetURLByOwner(ctx context.Context, owner string) ([]URLOfOwner, error) {
+func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
@@ -157,20 +156,19 @@ func (d databaseT) GetURLByOwner(ctx context.Context, owner string) ([]URLOfOwne
 	defer rows.Close()
 	fmt.Println(rows)
 	var originalURL, shortURL string
-	var result []URLOfOwner
 	for rows.Next() {
 		err := rows.Scan(&shortURL, &originalURL)
 		if err != nil {
 			return nil, err
 		}
-		fullAddr, err := url.JoinPath(cfg.Server.BaseURL, shortURL)
+		fullAddr, err := url.JoinPath(d.config.Server.BaseURL, shortURL)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, URLOfOwner{fullAddr, originalURL})
+		URLList = append(URLList, URLOfOwner{fullAddr, originalURL})
 	}
 
-	return result, err
+	return URLList, err
 }
 
 func (d databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {

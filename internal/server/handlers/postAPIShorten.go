@@ -23,7 +23,7 @@ func PostAPIURL(c *gin.Context) {
 		return
 	}
 
-	result, added, err := utils.Shorten(newReqBody.URL, owner.(string), c)
+	result, added, err := utils.Shorten(c, newReqBody.URL, owner.(string))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
