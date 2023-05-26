@@ -62,8 +62,12 @@ func BenchmarkServer(b *testing.B) {
 			srcReader := bytes.NewBuffer(reqBody)
 			req, _ := http.NewRequest("DELETE", config.Server.BaseURL+"/api/user/urls",
 				srcReader)
-			respD, err := client.Do(req)
+			respD, _ := client.Do(req)
 			err = req.Body.Close()
+			if err != nil {
+				return
+			}
+			err = respD.Body.Close()
 			if err != nil {
 				return
 			}
