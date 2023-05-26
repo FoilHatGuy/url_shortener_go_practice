@@ -10,6 +10,7 @@ import (
 	"shortener/internal/cfg"
 )
 
+// AuthEngine is a main operating variable. To use, Initialize it first
 var AuthEngine sessionValidator
 
 // Init

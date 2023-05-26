@@ -5,6 +5,7 @@ import (
 	"shortener/internal/cfg"
 )
 
+// Controller is a main operating variable. To use, Initialize it first
 var Controller DatabaseORM
 
 // Initialize

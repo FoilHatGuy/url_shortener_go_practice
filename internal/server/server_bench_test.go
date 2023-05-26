@@ -51,6 +51,10 @@ func BenchmarkServer(b *testing.B) {
 		if http.StatusTemporaryRedirect != resp.StatusCode {
 			b.Errorf("urls don't match because %t", err)
 		}
+		err = resp.Body.Close()
+		if err != nil {
+			return
+		}
 
 		ch := mrng.Intn(100)
 		if ch < 15 {
@@ -59,6 +63,10 @@ func BenchmarkServer(b *testing.B) {
 			req, _ := http.NewRequest("DELETE", config.Server.BaseURL+"/api/user/urls",
 				srcReader)
 			respD, err := client.Do(req)
+			err = req.Body.Close()
+			if err != nil {
+				return
+			}
 			if http.StatusAccepted != respD.StatusCode {
 				b.Errorf("couldn't delete %t, status: %d", err, respD.StatusCode)
 			}
