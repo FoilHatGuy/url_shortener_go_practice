@@ -65,13 +65,10 @@ func BenchmarkServer(b *testing.B) {
 			respD, _ := client.Do(req)
 			err = req.Body.Close()
 			if err != nil {
-				return
+				b.Errorf("couldn't delete %t, status: %d", err, respD.StatusCode)
 			}
 			err = respD.Body.Close()
-			if err != nil {
-				return
-			}
-			if http.StatusAccepted != respD.StatusCode {
+			if err != nil || http.StatusAccepted != respD.StatusCode {
 				b.Errorf("couldn't delete %t, status: %d", err, respD.StatusCode)
 			}
 
