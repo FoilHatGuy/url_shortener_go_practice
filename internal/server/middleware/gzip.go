@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// Gunzip
+// Performs the data decompression if the contentType is gzip.
+// If no errors met during unpacking, passes the request to next handler.
 func Gunzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		contentType := c.GetHeader("Content-Encoding")
@@ -31,6 +34,9 @@ func Gunzip() gin.HandlerFunc {
 	}
 }
 
+// Gzip
+// Performs the data compression if the acceptsType is application/gzip.
+// Adds layer to gin.ResponseWriter that performs compression
 func Gzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		acceptsType := c.GetHeader("Accept-Encoding")
@@ -55,15 +61,18 @@ func Gzip() gin.HandlerFunc {
 	}
 }
 
+// gzipWriter is a custom writer user for compressing responses
 type gzipWriter struct {
 	gin.ResponseWriter
 	writer *gzip.Writer
 }
 
+// WriteString replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	return g.writer.Write([]byte(s))
 }
 
+// Write replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	return g.writer.Write(data)
 }

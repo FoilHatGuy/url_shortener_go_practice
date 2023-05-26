@@ -9,6 +9,10 @@ import (
 
 var config *cfg.ConfigT
 
+// Cooker manages sid cookies.
+// Deciphers "user" cookie using security.AuthEngine Validate to get key from sid.
+// If the referrer doesn't possess the cookie, it generates a new sid and sets user's cookie.
+// Either way, it allows the request handling.
 func Cooker() gin.HandlerFunc {
 	if config == nil {
 		config = cfg.Initialize()

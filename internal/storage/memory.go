@@ -37,10 +37,8 @@ type storage struct {
 	config *cfg.ConfigT
 }
 
-func (s *storage) Ping(_ context.Context) bool {
-	return true
-}
-
+// Initialize
+// Performs initial setup of main operating variable using configuration from cfg.ConfigT
 func (s *storage) Initialize() {
 	s.loadData()
 	//interval := s.config.Storage.AutosaveInterval
@@ -96,6 +94,8 @@ func validateFolder(config *cfg.ConfigT) {
 	}
 }
 
+// AddURL adds a new entry to storage if it wasn't already added.
+// Additionally, stores user key and all urls saved by each user
 func (s *storage) AddURL(_ context.Context, original string, short string, user string) (ok bool, existing string, err error) {
 	res := dataTVal{original, false}
 	s.Data.Store(short, res)
@@ -108,6 +108,7 @@ func (s *storage) AddURL(_ context.Context, original string, short string, user 
 	return true, existing, nil
 }
 
+// GetURL retrieves original URL by its shortened form
 func (s *storage) GetURL(_ context.Context, url string) (original string, ok bool, err error) {
 	v, ok := s.Data.Load(url)
 	if ok {
@@ -120,6 +121,7 @@ func (s *storage) GetURL(_ context.Context, url string) (original string, ok boo
 	return "", false, errors.New("no url")
 }
 
+// GetURLByOwner returns slice of URLOfOwner by user's uid
 func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOwner, err error) {
 	var result []URLOfOwner
 	user, ok := s.Owners.Load(owner)
@@ -140,6 +142,7 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOw
 	return result, nil
 }
 
+// Delete marks url as deleted, and it will no longer be accessible by GetURL
 func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 	v, _ := s.Owners.Load(owner)
 	if v == nil {
@@ -155,4 +158,9 @@ func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 		s.Data.Store(i.(string), val)
 	}
 	return nil
+}
+
+// Ping checks the database availability
+func (s *storage) Ping(_ context.Context) bool {
+	return true
 }

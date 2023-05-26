@@ -18,6 +18,9 @@ type databaseT struct {
 	config   *cfg.ConfigT
 }
 
+// databaseInitialize
+// Performs initial setup of main operating variable using configuration from cfg.ConfigT.
+// Creates the database on postgres specified by cfg.StorageT DatabaseDSN field
 func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 	if config.Storage.DatabaseDSN == "" {
 		return nil
@@ -60,6 +63,8 @@ func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 	}
 	return databaseT{database: db, config: config}
 }
+
+// Initialize creates all required tables and sets up relations
 func (d databaseT) Initialize() {
 	exec, err := d.database.Exec(context.Background(), `
 	CREATE TABLE IF 	NOT EXISTS urls (
@@ -89,6 +94,8 @@ func (d databaseT) Initialize() {
 	}
 }
 
+// AddURL adds a new entry to storage if it wasn't already added.
+// users table stores user key and all urls saved by each user
 func (d databaseT) AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error) {
 	var shortURL, originalURL string
 
@@ -125,23 +132,7 @@ func (d databaseT) AddURL(ctx context.Context, original string, short string, us
 	return true, "", nil
 }
 
-func (d databaseT) GetByOriginalURL(ctx context.Context, original string) (shortURL string, ok bool, err error) {
-	var deleted bool
-	err = d.database.QueryRow(ctx, `
-		SELECT short_url, deleted FROM urls
-		WHERE original_url = $1
-	`, original).Scan(&shortURL, &deleted)
-	fmt.Println(err, "\n", shortURL, "\n", original, "\n", deleted)
-	if deleted {
-		return "", true, nil
-	}
-	if err != nil {
-		fmt.Println("ERR", err)
-		return "", false, err
-	}
-	return shortURL, true, err
-}
-
+// GetURL retrieves original URL by its shortened form
 func (d databaseT) GetURL(ctx context.Context, short string) (original string, ok bool, err error) {
 	var originalURL string
 	var deleted bool
@@ -160,6 +151,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (original string, o
 	return originalURL, true, err
 }
 
+// GetURLByOwner returns slice of URLOfOwner by user's uid
 func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
@@ -187,6 +179,7 @@ func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (URLList []U
 	return URLList, err
 }
 
+// Delete marks url as deleted, and it will no longer be accessible by GetURL
 func (d databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
 	fmt.Println(stringArray)
 	q, err := d.database.Exec(ctx, fmt.Sprintf(`
@@ -205,6 +198,7 @@ func (d databaseT) Delete(ctx context.Context, stringArray []string, owner strin
 	return nil
 }
 
+// Ping checks the database availability
 func (d databaseT) Ping(ctx context.Context) bool {
 	err := d.database.Ping(ctx)
 	return err == nil

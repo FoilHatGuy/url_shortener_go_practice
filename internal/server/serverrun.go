@@ -10,6 +10,8 @@ import (
 	"shortener/internal/server/middleware"
 )
 
+// Run
+// Performs initial setup of server router and launches it.
 func Run(config *cfg.ConfigT) {
 	r := gin.Default()
 	baseRouter := r.Group("")
