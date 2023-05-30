@@ -2,9 +2,11 @@ package server
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"log"
+
 	"shortener/internal/cfg"
 	"shortener/internal/server/handlers"
 	"shortener/internal/server/middleware"

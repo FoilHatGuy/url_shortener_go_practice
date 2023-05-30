@@ -1,10 +1,11 @@
 package security
 
 import (
-	"github.com/stretchr/testify/suite"
-	"shortener/internal/cfg"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
+	"shortener/internal/cfg"
 )
 
 type AuthTestSuite struct {

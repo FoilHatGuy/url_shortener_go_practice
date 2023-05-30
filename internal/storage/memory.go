@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/juliangruber/go-intersect"
 	"net/url"
 	"os"
 	"path/filepath"
-	"shortener/internal/cfg"
 	"sync"
+
+	"github.com/juliangruber/go-intersect"
+
+	"shortener/internal/cfg"
 )
 
 type dataTVal struct {
@@ -60,15 +62,16 @@ func (s *storage) saveData() error {
 	validateFolder(s.config)
 	fmt.Print("SAVING\n")
 	if data, err := json.Marshal(s); err == nil {
-		//fmt.Printf("WRITING %v\n", data)
+		// fmt.Printf("WRITING %v\n", data)
 		err := os.WriteFile(s.config.Storage.SavePath, data, os.ModePerm)
 		if err != nil {
 			return err
 		}
-		//fmt.Print("COMPLETE\n")
+		// fmt.Print("COMPLETE\n")
 	}
 	return nil
 }
+
 func (s *storage) loadData() {
 	if s.config.Storage.StorageType == "none" {
 		return

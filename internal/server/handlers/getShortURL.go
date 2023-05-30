@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"shortener/internal/cfg"
 	"shortener/internal/storage"
 )
@@ -33,7 +35,6 @@ func GetShortURL(c *gin.Context) {
 		c.Status(http.StatusGone)
 		return
 	}
-	//fmt.Printf("get complete\n\n")
+	// fmt.Printf("get complete\n\n")
 	c.Redirect(307, result)
-
 }

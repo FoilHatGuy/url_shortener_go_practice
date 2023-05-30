@@ -5,15 +5,17 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/suite"
 	"io"
 	"net/http"
 	_ "net/http/pprof"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/suite"
+
 	"shortener/internal/cfg"
 	"shortener/internal/security"
 	"shortener/internal/storage"
-	"testing"
-	"time"
 )
 
 type ServerTestSuite struct {
@@ -36,8 +38,8 @@ func (s *ServerTestSuite) SetupSuite() {
 	}
 	time.Sleep(1 * time.Second)
 }
-func (s *ServerTestSuite) TestPing() {
 
+func (s *ServerTestSuite) TestPing() {
 	respG, err := s.client.Get(s.config.Server.BaseURL + "/ping")
 	s.Assert().NoError(err)
 	s.Assert().Equal(http.StatusOK, respG.StatusCode)
@@ -148,7 +150,7 @@ func (s *ServerTestSuite) TestGzipRequest() {
 
 		fmt.Println("SHORT URL:\t", string(bodyP))
 
-		//respG, err := suite.client.Get(string(bodyP))
+		// respG, err := suite.client.Get(string(bodyP))
 		req, _ := http.NewRequest("GET", string(bodyP), &b)
 		req.Header.Set("Accept-Encoding", "application/gzip")
 		respG, _ := s.client.Do(req)

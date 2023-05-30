@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	utils "shortener/internal/server/handlers/utils"
 )
 

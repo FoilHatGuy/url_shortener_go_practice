@@ -3,12 +3,13 @@ package cfg
 import (
 	"flag"
 	"fmt"
+
 	"github.com/sakirsensoy/genv"
-	_ "github.com/sakirsensoy/genv/dotenv/autoload"
+	_ "github.com/sakirsensoy/genv/dotenv/autoload" // import for automatic loading of .env config
 )
 
 var (
-	serverAdress    string
+	serverAddress   string
 	databaseDSN     string
 	baseURL         string
 	fileStoragePath string
@@ -26,7 +27,7 @@ func Initialize() *ConfigT {
 	}
 	fmt.Println("cfg initialized")
 	flag.StringVar(&databaseDSN, "d", "", "help message for flagname")
-	flag.StringVar(&serverAdress, "a", "localhost:8080", "help message for flagname")
+	flag.StringVar(&serverAddress, "a", "localhost:8080", "help message for flagname")
 	flag.StringVar(&baseURL, "b", "http://localhost:8080", "help message for flagname")
 	flag.StringVar(&fileStoragePath, "f", "./data/data", "help message for flagname")
 	flag.Parse()
@@ -41,7 +42,7 @@ func Initialize() *ConfigT {
 		fmt.Println(storageType, "SELECTED AS STORAGE TYPE")
 	}
 
-	fmt.Println(serverAdress, baseURL, fileStoragePath)
+	fmt.Println(serverAddress, baseURL, fileStoragePath)
 	fmt.Println(
 		genv.Key("SERVER_ADDRESS").Default("NO SUCH FIELD").String(),
 		genv.Key("BASE_URL").Default("NO SUCH FIELD").String(),
@@ -53,7 +54,7 @@ func Initialize() *ConfigT {
 		},
 
 		Server: ServerT{
-			Address:        genv.Key("SERVER_ADDRESS").Default(serverAdress).String(),
+			Address:        genv.Key("SERVER_ADDRESS").Default(serverAddress).String(),
 			Port:           genv.Key("SERVER_PORT").Default("8080").String(),
 			BaseURL:        genv.Key("BASE_URL").Default(baseURL).String(),
 			CookieLifetime: 30 * 24 * 60 * 60,

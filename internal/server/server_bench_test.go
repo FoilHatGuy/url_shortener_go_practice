@@ -9,11 +9,12 @@ import (
 	mrng "math/rand"
 	"net/http"
 	_ "net/http/pprof"
+	"testing"
+	"time"
+
 	"shortener/internal/cfg"
 	"shortener/internal/security"
 	"shortener/internal/storage"
-	"testing"
-	"time"
 )
 
 func BenchmarkServer(b *testing.B) {
@@ -77,8 +78,10 @@ func BenchmarkServer(b *testing.B) {
 	}
 }
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-var length = big.NewInt(int64(len(letters)))
+var (
+	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	length  = big.NewInt(int64(len(letters)))
+)
 
 func generateString(n int) string {
 	b := make([]rune, n)

@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/suite"
 	"shortener/internal/cfg"
-	"testing"
 )
 
 type DBTestSuite struct {
@@ -12,11 +13,9 @@ type DBTestSuite struct {
 
 func (s *DBTestSuite) SetupTest() {
 	cfg.Initialize()
-
 }
 
 func (s *DBTestSuite) TestGetPostRequest() {
-
 }
 
 func TestDatabase(t *testing.T) {

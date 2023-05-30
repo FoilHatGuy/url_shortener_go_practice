@@ -3,10 +3,12 @@ package storage
 import (
 	"context"
 	"crypto/rand"
-	"github.com/stretchr/testify/suite"
 	"math/big"
-	"shortener/internal/cfg"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"shortener/internal/cfg"
 )
 
 type MemoryTestSuite struct {
@@ -111,8 +113,10 @@ func TestMemory(t *testing.T) {
 	suite.Run(t, new(MemoryTestSuite))
 }
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-var length = big.NewInt(int64(len(letters)))
+var (
+	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	length  = big.NewInt(int64(len(letters)))
+)
 
 func generateString(n int) string {
 	b := make([]rune, n)

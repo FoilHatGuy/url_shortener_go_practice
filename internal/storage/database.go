@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"regexp"
+	"strings"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"net/url"
-	"regexp"
+
 	"shortener/internal/cfg"
-	"strings"
 )
 
 type databaseT struct {
@@ -50,7 +52,7 @@ func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 	//
 	if err != nil {
 		fmt.Println(err)
-		//return nil
+		// return nil
 	}
 	err = initDB.Close(context.Background())
 	if err != nil {

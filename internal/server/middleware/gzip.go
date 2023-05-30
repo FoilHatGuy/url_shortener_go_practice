@@ -2,9 +2,10 @@ package middleware
 
 import (
 	"compress/gzip"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Gunzip

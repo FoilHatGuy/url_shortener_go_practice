@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
 	"shortener/internal/cfg"
 )
 
@@ -56,7 +57,7 @@ func (e *engineT) Validate(cookie string) (key string, err error) {
 
 // Generate
 // Method used for generation of key-sid pair. sid can be validated using Validate
-func (e *engineT) Generate() (cookie string, key string) {
+func (e *engineT) Generate() (cookie, key string) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {

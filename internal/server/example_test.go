@@ -18,6 +18,6 @@ func ExampleRun() {
 	Run(cfgData)
 
 	// Be aware that server blocks further execution,
-	//so if you need to perform further actions while the server is running, we use:
+	// so if you need to perform further actions while the server is running, we use:
 	go Run(cfgData)
 }

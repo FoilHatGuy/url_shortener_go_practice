@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"shortener/internal/storage"
 )
 
@@ -15,5 +17,4 @@ func PingDatabase(c *gin.Context) {
 	} else {
 		c.Status(http.StatusInternalServerError)
 	}
-
 }
