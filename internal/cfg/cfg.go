@@ -19,8 +19,8 @@ var (
 )
 
 // Initialize
-// Performs initial initialisation of configurations based on flags and/or env variables.
-// If the initialisation was already performed somewhere else, returns the config object of type ConfigT
+// Performs initial initialization of configurations based on flags and/or env variables.
+// If the initialization was already performed somewhere else, returns the config object of type ConfigT
 func Initialize() *ConfigT {
 	if config != nil {
 		return config

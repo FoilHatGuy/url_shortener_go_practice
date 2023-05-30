@@ -31,12 +31,12 @@ type URLOfOwner struct {
 }
 
 // DatabaseORM
-// Interface for realisation of all used methods that need the database interactions. Can support multiple realisations.
+// Interface for realization of all used methods that need the database interactions. Can support multiple realizations.
 type DatabaseORM interface {
 	Initialize()
 	AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error)
 	GetURL(ctx context.Context, short string) (original string, ok bool, err error)
-	GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error)
+	GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error)
 	Ping(ctx context.Context) (ok bool)
 	Delete(ctx context.Context, stringArray []string, owner string) (err error)
 }

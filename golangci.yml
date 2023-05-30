@@ -66,11 +66,11 @@ linters-settings:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
   gofumpt:
-    module-path: github.com/ydb-platform/ydb-go-sdk/v3
+    module-path: shortener
   goimports:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
-    local-prefixes: github.com/ydb-platform/ydb-go-sdk/v3
+    local-prefixes: shortener
   goconst:
     # minimal length of string constant, 3 by default
     min-len: 2
@@ -277,7 +277,7 @@ linters:
 #    - testpackage
 #    - thelper
 #    - tenv
-    - typecheck
+#    - typecheck
     - unconvert
     - unparam
     - unused

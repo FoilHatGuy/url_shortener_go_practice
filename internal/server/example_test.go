@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleRun() {
-	// First we need to initialise config, since it is needed in security, storage and server setup functions
+	// First we need to initialize config, since it is needed in security, storage and server setup functions
 	cfgData := cfg.Initialize()
 
 	// Then we setup all additional modules used by server

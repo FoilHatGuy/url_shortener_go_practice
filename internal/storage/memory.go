@@ -43,8 +43,9 @@ type storage struct {
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT
 func (s *storage) Initialize() {
 	s.loadData()
-	//interval := s.config.Storage.AutosaveInterval
-	//if interval > 0 {
+	// if there is a need to use autosave function:
+	// interval := s.config.Storage.AutosaveInterval
+	// if interval > 0 {
 	//	go func(s *storage, inter int) {
 	//		err := s.saveData()
 	//		if err != nil {
@@ -55,27 +56,19 @@ func (s *storage) Initialize() {
 	//}
 }
 
-func (s *storage) saveData() error {
-	if s.config.Storage.StorageType == "none" {
-		return nil
-	}
-	validateFolder(s.config)
-	fmt.Print("SAVING\n")
-	if data, err := json.Marshal(s); err == nil {
-		// fmt.Printf("WRITING %v\n", data)
-		err := os.WriteFile(s.config.Storage.SavePath, data, os.ModePerm)
-		if err != nil {
-			return err
-		}
-		// fmt.Print("COMPLETE\n")
-	}
-	return nil
-}
+// func (s *storage) saveData() error {
+//   validateFolder(s.config)
+//   fmt.Print("SAVING\n")
+//   if data, err := json.Marshal(s); err == nil {
+//   	err := os.WriteFile(s.config.Storage.SavePath, data, os.ModePerm)
+//   	if err != nil {
+//   		return err
+//   	}
+//   }
+//   return nil
+// }
 
 func (s *storage) loadData() {
-	if s.config.Storage.StorageType == "none" {
-		return
-	}
 	validateFolder(s.config)
 	fmt.Printf("DATA LOADING\n")
 	if file, err := os.ReadFile(s.config.Storage.SavePath); err == nil {
@@ -99,7 +92,7 @@ func validateFolder(config *cfg.ConfigT) {
 
 // AddURL adds a new entry to storage if it wasn't already added.
 // Additionally, stores user key and all urls saved by each user
-func (s *storage) AddURL(_ context.Context, original string, short string, user string) (ok bool, existing string, err error) {
+func (s *storage) AddURL(_ context.Context, original, short, user string) (ok bool, existing string, err error) {
 	res := dataTVal{original, false}
 	s.Data.Store(short, res)
 	arr, ok := s.Owners.Load(user)
@@ -125,7 +118,7 @@ func (s *storage) GetURL(_ context.Context, url string) (original string, ok boo
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (s *storage) GetURLByOwner(_ context.Context, owner string) (URLs []URLOfOwner, err error) {
+func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
 	var result []URLOfOwner
 	user, ok := s.Owners.Load(owner)
 	if !ok {

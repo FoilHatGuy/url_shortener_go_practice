@@ -10,7 +10,7 @@ type ConfigTestSuite struct {
 	suite.Suite
 }
 
-func (s *ConfigTestSuite) TestSequentialInitialisation() {
+func (s *ConfigTestSuite) TestSequentialInitialization() {
 	config1 := Initialize()
 	s.Assert().Equal(&config1, &config)
 	config2 := Initialize()

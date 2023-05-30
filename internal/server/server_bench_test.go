@@ -19,7 +19,7 @@ import (
 
 func BenchmarkServer(b *testing.B) {
 	b.ReportAllocs()
-	// initialising server
+	// initializing server
 	config := cfg.Initialize()
 	security.Init(config)
 	config.Storage.StorageType = "none"
@@ -72,9 +72,7 @@ func BenchmarkServer(b *testing.B) {
 			if err != nil || http.StatusAccepted != respD.StatusCode {
 				b.Errorf("couldn't delete %t, status: %d", err, respD.StatusCode)
 			}
-
 		}
-
 	}
 }
 

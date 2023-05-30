@@ -114,7 +114,7 @@ func (s *ServerTestSuite) TestBatchRequest() {
 
 	bodyG := respG.Header.Get("Location")
 	fmt.Println("RESULT URL:\t", bodyG)
-	s.Equal(srcURL, string(bodyG))
+	s.Equal(srcURL, bodyG)
 
 	err = respP.Body.Close()
 	s.Assert().NoError(err)
@@ -125,49 +125,49 @@ func (s *ServerTestSuite) TestBatchRequest() {
 func (s *ServerTestSuite) TestGzipRequest() {
 	if true {
 		return
-	} else {
-		srcURL := "https://www.TestGzipRequest.com"
-		srcReader := bytes.NewBuffer([]byte(srcURL))
-		fmt.Println("INPUT URL:\t", srcURL)
-
-		var b bytes.Buffer
-		gz := gzip.NewWriter(&b)
-
-		_, err := gz.Write(srcReader.Bytes())
-		s.Assert().NoError(err)
-
-		respP, err := s.client.Post(s.config.Server.BaseURL+"/", "text/plain", &b)
-
-		fmt.Println("POST response:\t\t", respP)
-		fmt.Println("POST error   :\t\t", err)
-		fmt.Println("current suite:\t\t", s)
-		s.Assert().NoError(err)
-		s.Assert().Equal(http.StatusCreated, respP.StatusCode)
-
-		var bodyP []byte
-		bodyP, err = io.ReadAll(respP.Body)
-		s.Assert().NoError(err)
-
-		fmt.Println("SHORT URL:\t", string(bodyP))
-
-		// respG, err := suite.client.Get(string(bodyP))
-		req, _ := http.NewRequest("GET", string(bodyP), &b)
-		req.Header.Set("Accept-Encoding", "application/gzip")
-		respG, _ := s.client.Do(req)
-		s.Assert().NoError(err)
-		s.Assert().Equal(http.StatusTemporaryRedirect, respG.StatusCode)
-
-		bodyG := respG.Header.Get("Location")
-
-		fmt.Println("RESULT URL:\t", bodyG)
-
-		s.Equal(srcURL, bodyG)
-
-		err = respP.Body.Close()
-		s.Assert().NoError(err)
-		err = respG.Body.Close()
-		s.Assert().NoError(err)
 	}
+
+	srcURL := "https://www.TestGzipRequest.com"
+	srcReader := bytes.NewBuffer([]byte(srcURL))
+	fmt.Println("INPUT URL:\t", srcURL)
+
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+
+	_, err := gz.Write(srcReader.Bytes())
+	s.Assert().NoError(err)
+
+	respP, err := s.client.Post(s.config.Server.BaseURL+"/", "text/plain", &b)
+
+	fmt.Println("POST response:\t\t", respP)
+	fmt.Println("POST error   :\t\t", err)
+	fmt.Println("current suite:\t\t", s)
+	s.Assert().NoError(err)
+	s.Assert().Equal(http.StatusCreated, respP.StatusCode)
+
+	var bodyP []byte
+	bodyP, err = io.ReadAll(respP.Body)
+	s.Assert().NoError(err)
+
+	fmt.Println("SHORT URL:\t", string(bodyP))
+
+	// respG, err := suite.client.Get(string(bodyP))
+	req, _ := http.NewRequest("GET", string(bodyP), &b)
+	req.Header.Set("Accept-Encoding", "application/gzip")
+	respG, _ := s.client.Do(req)
+	s.Assert().NoError(err)
+	s.Assert().Equal(http.StatusTemporaryRedirect, respG.StatusCode)
+
+	bodyG := respG.Header.Get("Location")
+
+	fmt.Println("RESULT URL:\t", bodyG)
+
+	s.Equal(srcURL, bodyG)
+
+	err = respP.Body.Close()
+	s.Assert().NoError(err)
+	err = respG.Body.Close()
+	s.Assert().NoError(err)
 }
 
 func (s *ServerTestSuite) TestDeleteRequest() {

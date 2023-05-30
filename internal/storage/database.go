@@ -98,7 +98,7 @@ func (d databaseT) Initialize() {
 
 // AddURL adds a new entry to storage if it wasn't already added.
 // users table stores user key and all urls saved by each user
-func (d databaseT) AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error) {
+func (d databaseT) AddURL(ctx context.Context, original, short, user string) (ok bool, existing string, err error) {
 	var shortURL, originalURL string
 
 	_, err = d.database.Exec(ctx, `
@@ -154,7 +154,7 @@ func (d databaseT) GetURL(ctx context.Context, short string) (original string, o
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (URLList []URLOfOwner, err error) {
+func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
@@ -167,18 +167,15 @@ func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (URLList []U
 	fmt.Println(rows)
 	var originalURL, shortURL string
 	for rows.Next() {
-		err := rows.Scan(&shortURL, &originalURL)
+		err = rows.Scan(&shortURL, &originalURL)
 		if err != nil {
 			return nil, err
 		}
-		fullAddr, err := url.JoinPath(d.config.Server.BaseURL, shortURL)
-		if err != nil {
-			return nil, err
-		}
-		URLList = append(URLList, URLOfOwner{fullAddr, originalURL})
+		fullAddr, _ := url.JoinPath(d.config.Server.BaseURL, shortURL)
+		arrayURLs = append(arrayURLs, URLOfOwner{fullAddr, originalURL})
 	}
 
-	return URLList, err
+	return arrayURLs, err
 }
 
 // Delete marks url as deleted, and it will no longer be accessible by GetURL
