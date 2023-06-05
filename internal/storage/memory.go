@@ -20,17 +20,12 @@ type dataTVal struct {
 	Deleted  bool
 }
 
-var memoryController DatabaseORM
-
 func getMemoryController(config *cfg.ConfigT) DatabaseORM {
-	if memoryController == nil {
-		memoryController = &storage{
-			Data:   sync.Map{},
-			Owners: sync.Map{},
-			config: config,
-		}
+	return &storage{
+		Data:   sync.Map{},
+		Owners: sync.Map{},
+		config: config,
 	}
-	return memoryController
 }
 
 type storage struct {
@@ -127,7 +122,7 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []UR
 	for _, address := range user.([]string) {
 		fullAddr, err := url.JoinPath(s.config.Server.BaseURL, address)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("while memory.GetURLByOwner %w", err)
 		}
 		v, ok := s.Data.Load(address)
 		if ok {
@@ -153,6 +148,7 @@ func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 		val.Deleted = true
 		s.Data.Store(i.(string), val)
 	}
+
 	return nil
 }
 

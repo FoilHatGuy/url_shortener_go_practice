@@ -6,22 +6,20 @@ import (
 	"shortener/internal/cfg"
 )
 
-// Controller is a main operating variable. To use, Initialize it first
-var Controller DatabaseORM
-
-// Initialize
+// New
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT
-func Initialize(config *cfg.ConfigT) {
-	switch config.Storage.StorageType {
-	case "database":
-		Controller = databaseInitialize(config)
-		if Controller == nil {
-			Controller = getMemoryController(config)
+func New(config *cfg.ConfigT) DatabaseORM {
+	var controller DatabaseORM
+	if config.Storage.StorageType == cfg.Database {
+		controller = databaseInitialize(config)
+		if controller == nil {
+			controller = getMemoryController(config)
 		}
-	default:
-		Controller = getMemoryController(config)
+	} else {
+		controller = getMemoryController(config)
 	}
-	Controller.Initialize()
+	controller.Initialize()
+	return controller
 }
 
 // URLOfOwner is a structure returned by DatabaseORM.GetURLByOwner method

@@ -63,11 +63,14 @@ func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 	if err != nil && !errors.Is(err, new(pgconn.PgError)) {
 		return nil
 	}
-	return databaseT{database: db, config: config}
+	return &databaseT{
+		database: db,
+		config:   config,
+	}
 }
 
 // Initialize creates all required tables and sets up relations
-func (d databaseT) Initialize() {
+func (d *databaseT) Initialize() {
 	exec, err := d.database.Exec(context.Background(), `
 	CREATE TABLE IF 	NOT EXISTS urls (
 	    short_url 		text 	UNIQUE NOT NULL PRIMARY KEY, 
@@ -98,7 +101,7 @@ func (d databaseT) Initialize() {
 
 // AddURL adds a new entry to storage if it wasn't already added.
 // users table stores user key and all urls saved by each user
-func (d databaseT) AddURL(ctx context.Context, original, short, user string) (ok bool, existing string, err error) {
+func (d *databaseT) AddURL(ctx context.Context, original, short, user string) (ok bool, existing string, err error) {
 	var shortURL, originalURL string
 
 	_, err = d.database.Exec(ctx, `
@@ -107,7 +110,7 @@ func (d databaseT) AddURL(ctx context.Context, original, short, user string) (ok
 `, short, original)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return false, "", err
+		return false, "", fmt.Errorf("while database.AddURL %w", err)
 	}
 	err = d.database.QueryRow(ctx, `
 		SELECT short_url, original_url FROM urls
@@ -115,7 +118,7 @@ func (d databaseT) AddURL(ctx context.Context, original, short, user string) (ok
 	`, original).Scan(&shortURL, &originalURL)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return false, "", err
+		return false, "", fmt.Errorf("while database.AddURL %w", err)
 	}
 
 	if short != shortURL {
@@ -128,14 +131,14 @@ func (d databaseT) AddURL(ctx context.Context, original, short, user string) (ok
 		`, user, short)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return false, "", err
+		return false, "", fmt.Errorf("while database.AddURL %w", err)
 	}
 
 	return true, "", nil
 }
 
 // GetURL retrieves original URL by its shortened form
-func (d databaseT) GetURL(ctx context.Context, short string) (original string, ok bool, err error) {
+func (d *databaseT) GetURL(ctx context.Context, short string) (original string, ok bool, err error) {
 	var originalURL string
 	var deleted bool
 	err = d.database.QueryRow(ctx, `
@@ -148,20 +151,20 @@ func (d databaseT) GetURL(ctx context.Context, short string) (original string, o
 	}
 	if err != nil {
 		fmt.Println("ERR", err)
-		return "", false, err
+		return "", false, fmt.Errorf("while database.GetURL %w", err)
 	}
-	return originalURL, true, err
+	return originalURL, true, nil
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
+func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
 	`, owner)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return nil, err
+		return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 	}
 	defer rows.Close()
 	fmt.Println(rows)
@@ -169,17 +172,17 @@ func (d databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs [
 	for rows.Next() {
 		err = rows.Scan(&shortURL, &originalURL)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 		}
 		fullAddr, _ := url.JoinPath(d.config.Server.BaseURL, shortURL)
 		arrayURLs = append(arrayURLs, URLOfOwner{fullAddr, originalURL})
 	}
 
-	return arrayURLs, err
+	return arrayURLs, nil
 }
 
 // Delete marks url as deleted, and it will no longer be accessible by GetURL
-func (d databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
+func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
 	fmt.Println(stringArray)
 	q, err := d.database.Exec(ctx, fmt.Sprintf(`
 		UPDATE urls
@@ -192,13 +195,13 @@ func (d databaseT) Delete(ctx context.Context, stringArray []string, owner strin
 	fmt.Println("QQQQ\n", q)
 	if err != nil {
 		fmt.Println("ERR", err)
-		return err
+		return fmt.Errorf("while database.Delete %w", err)
 	}
 	return nil
 }
 
 // Ping checks the database availability
-func (d databaseT) Ping(ctx context.Context) bool {
+func (d *databaseT) Ping(ctx context.Context) bool {
 	err := d.database.Ping(ctx)
 	return err == nil
 }

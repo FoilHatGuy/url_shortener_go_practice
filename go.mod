@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/juliangruber/go-intersect v1.1.0
+	github.com/mcuadros/go-defaults v1.2.0
 	github.com/sakirsensoy/genv v1.0.1
 	github.com/stretchr/testify v1.8.1
 )

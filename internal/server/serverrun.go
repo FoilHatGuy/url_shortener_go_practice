@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"shortener/internal/auth"
+	"shortener/internal/storage"
+
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 
@@ -15,23 +18,25 @@ import (
 // Run
 // Performs initial setup of server router and launches it.
 func Run(config *cfg.ConfigT) {
+	dbController := storage.New(config)
+
 	r := gin.Default()
 	baseRouter := r.Group("")
-	{
-		baseRouter.Use(middleware.Gzip())
-		baseRouter.Use(middleware.Gunzip())
-		baseRouter.Use(middleware.Cooker())
-		baseRouter.GET("/:shortURL", handlers.GetShortURL)
-		baseRouter.GET("/ping", handlers.PingDatabase)
-		baseRouter.POST("/", handlers.PostURL)
-		api := baseRouter.Group("/api")
-		{
-			api.POST("/shorten", handlers.PostAPIURL)
-			api.POST("/shorten/batch", handlers.BatchShorten)
-			api.GET("/user/urls", handlers.GetAllOwnedURL)
-			api.DELETE("/user/urls", handlers.DeleteLine)
-		}
-	}
+
+	baseRouter.Use(middleware.Gzip())
+	baseRouter.Use(middleware.Gunzip())
+	baseRouter.Use(middleware.Cooker(config, auth.New(config)))
+	baseRouter.GET("/:shortURL",
+		handlers.GetShortURL(dbController, config))
+	baseRouter.GET("/ping", handlers.PingDatabase(dbController))
+	baseRouter.POST("/", handlers.PostURL(dbController, config))
+
+	api := baseRouter.Group("/api")
+	api.POST("/shorten", handlers.PostAPIURL(dbController, config))
+	api.POST("/shorten/batch", handlers.BatchShorten(dbController, config))
+	api.GET("/user/urls", handlers.GetAllOwnedURL(dbController))
+	api.DELETE("/user/urls", handlers.DeleteLine(dbController))
+
 	pprof.Register(r)
 	fmt.Println("SERVER LISTENING ON", config.Server.Address)
 	log.Fatal(r.Run(config.Server.Address))

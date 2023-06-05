@@ -1,18 +1,18 @@
 package server
 
 import (
+	"shortener/internal/auth"
 	"shortener/internal/cfg"
-	"shortener/internal/security"
 	"shortener/internal/storage"
 )
 
 func ExampleRun() {
-	// First we need to initialize config, since it is needed in security, storage and server setup functions
-	cfgData := cfg.Initialize()
+	// First we need to New config, since it is needed in security, storage and server setup functions
+	cfgData := cfg.New(cfg.FromDefaults())
 
-	// Then we setup all additional modules used by server
-	security.Init(cfgData)
-	storage.Initialize(cfgData)
+	// Then we set up all additional modules used by server
+	auth.New(cfgData)
+	storage.New(cfgData)
 
 	// Finally, we run the server
 	Run(cfgData)

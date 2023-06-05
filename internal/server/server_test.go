@@ -7,14 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	_ "net/http/pprof"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	"shortener/internal/cfg"
-	"shortener/internal/security"
 	"shortener/internal/storage"
 )
 
@@ -25,17 +23,20 @@ type ServerTestSuite struct {
 }
 
 func (s *ServerTestSuite) SetupSuite() {
-	config := cfg.Initialize()
-	security.Init(config)
-	s.config = config
-	s.config.Storage.StorageType = "none"
-	storage.Initialize(config)
-	go Run(config)
+	s.config = cfg.New(
+		cfg.FromDefaults(),
+		cfg.WithStorage(cfg.StorageT{
+			StorageType: cfg.None,
+		}),
+	)
+	fmt.Printf("%+v", s.config)
+	storage.New(s.config)
 	s.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
+	go Run(s.config)
 	time.Sleep(1 * time.Second)
 }
 
@@ -81,7 +82,7 @@ func (s *ServerTestSuite) TestGetPostRequest() {
 }
 
 func (s *ServerTestSuite) TestBatchRequest() {
-	srcURL := "https://www.TestBatchRequest.com"
+	srcURL := "http://www.TestBatchRequest.com"
 	type reqElement struct {
 		LineID string `json:"correlation_id"`
 		URL    string `json:"original_url"`
@@ -94,10 +95,14 @@ func (s *ServerTestSuite) TestBatchRequest() {
 	srcReader := bytes.NewBuffer(reqBody)
 	fmt.Println("INPUT URL:\t", srcReader.String())
 
+	fmt.Printf(s.config.Server.BaseURL + "/api/shorten/batch")
 	respP, err := s.client.Post(s.config.Server.BaseURL+"/api/shorten/batch", "application/json", srcReader)
 	fmt.Println("POST response:\t\t", respP)
 	fmt.Println("POST error   :\t\t", err)
 	s.Assert().NoError(err)
+	if err == nil {
+		return
+	}
 	s.Assert().Equal(http.StatusCreated, respP.StatusCode)
 
 	s.Assert().NoError(err)
@@ -151,7 +156,6 @@ func (s *ServerTestSuite) TestGzipRequest() {
 
 	fmt.Println("SHORT URL:\t", string(bodyP))
 
-	// respG, err := suite.client.Get(string(bodyP))
 	req, _ := http.NewRequest("GET", string(bodyP), &b)
 	req.Header.Set("Accept-Encoding", "application/gzip")
 	respG, _ := s.client.Do(req)

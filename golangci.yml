@@ -83,7 +83,7 @@ linters-settings:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
     # Setting locale to US will correct the British spelling of 'colour' to 'color'.
-    locale: US
+    locale: UK
     ignore-words:
       - cancelled
   revive:
@@ -227,6 +227,7 @@ linters-settings:
 linters:
   disable-all: true
   enable:
+    - bodyclose
 #    - cyclop
     - depguard
     - dogsled
@@ -238,6 +239,7 @@ linters:
 #    - forbidigo
 #    - funlen
 #    - gci
+#    - gochecknoglobals
 #    - gocognit
     - goconst
     - gocritic
@@ -259,9 +261,8 @@ linters:
 #    - ireturn
     - lll
     - makezero
-    - misspell
     - ineffassign
-    - misspell
+#    - misspell
     - nakedret
     - nestif
 #    - nilnil
@@ -270,6 +271,7 @@ linters:
     - prealloc
     - predeclared
     - rowserrcheck
+    - reassign
     - revive
     - staticcheck
     - stylecheck
@@ -283,7 +285,7 @@ linters:
     - unused
 #    - varnamelen
     - whitespace
-#    - wrapcheck
+    - wrapcheck
 #    - wsl
 
 issues:
@@ -323,19 +325,3 @@ issues:
   # Default is false.
   new: false
 
-  # Show only new issues created after git revision `REV`
-  # new-from-rev: REV
-
-  # Show only new issues created in git patch with set file path.
-  # new-from-patch: path/to/patch/file
-  exclude-rules:
-    - path: internal/xatomic/type.go
-      linters:
-        - predeclared
-    - path: _test\.go
-      linters:
-        - unused
-        - unparam
-        - gocritic
-    - path: _test\.go
-      text: "ydb.Connection is deprecated"

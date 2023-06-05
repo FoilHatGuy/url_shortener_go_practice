@@ -6,24 +6,22 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
-	mrng "math/rand"
 	"net/http"
-	_ "net/http/pprof"
 	"testing"
 	"time"
 
+	"shortener/internal/auth"
 	"shortener/internal/cfg"
-	"shortener/internal/security"
 	"shortener/internal/storage"
 )
 
 func BenchmarkServer(b *testing.B) {
 	b.ReportAllocs()
 	// initializing server
-	config := cfg.Initialize()
-	security.Init(config)
-	config.Storage.StorageType = "none"
-	storage.Initialize(config)
+	config := cfg.New(cfg.FromDefaults())
+	auth.New(config)
+	config.Storage.StorageType = cfg.None
+	storage.New(config)
 	go Run(config)
 	client := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -45,7 +43,8 @@ func BenchmarkServer(b *testing.B) {
 		_ = resp.Body.Close()
 	}
 	for i := 0; i < b.N*5; i++ {
-		d := mrng.Intn(len(strings))
+		bigN, _ := rand.Int(rand.Reader, big.NewInt(100))
+		d := bigN.Int64()
 		short := strings[d]
 
 		resp, err := client.Get(short)
@@ -57,7 +56,8 @@ func BenchmarkServer(b *testing.B) {
 			return
 		}
 
-		ch := mrng.Intn(100)
+		num, _ := rand.Int(rand.Reader, big.NewInt(100))
+		ch := num.Int64()
 		if ch < 15 {
 			reqBody, _ := json.Marshal([]string{short})
 			srcReader := bytes.NewBuffer(reqBody)

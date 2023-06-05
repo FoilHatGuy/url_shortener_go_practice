@@ -5,26 +5,31 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"shortener/internal/cfg"
-	"shortener/internal/storage"
-)
 
-var config *cfg.ConfigT
+	"shortener/internal/storage"
+
+	"shortener/internal/cfg"
+)
 
 // Shorten is a common function used by handlers that perform adding URLs to database.
 // Takes original URL and uid and returns the URL by which user can access their URL.
-func Shorten(ctx context.Context, inputURL string, owner string) (result string, added bool, err error) {
-	if config == nil {
-		config = cfg.Initialize()
-	}
-
+func Shorten(
+	ctx context.Context,
+	dbController storage.DatabaseORM,
+	inputURL, owner string,
+	config *cfg.ConfigT,
+) (
+	result string,
+	added bool,
+	err error,
+) {
 	_, err = url.Parse(inputURL)
 	if err != nil {
 		return "", false, errors.New("bad URL")
 	}
 
 	shortURL := RandSeq(config.Shortener.URLLength)
-	added, existing, err := storage.Controller.AddURL(ctx, inputURL, shortURL, owner)
+	added, existing, err := dbController.AddURL(ctx, inputURL, shortURL, owner)
 	if err != nil {
 		return "", added, err
 	}

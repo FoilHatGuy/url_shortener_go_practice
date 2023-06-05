@@ -3,7 +3,9 @@ package storage
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"math/big"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -19,13 +21,16 @@ type MemoryTestSuite struct {
 }
 
 func (s *MemoryTestSuite) SetupTest() {
-	config := cfg.Initialize()
-	config.Storage.StorageType = "file"
-	config.Storage.SavePath = "../data"
-	config.Storage.AutosaveInterval = 5
-	s.config = config
-	Initialize(s.config)
-	s.ctrl = Controller
+	s.config = cfg.New(
+		cfg.FromDefaults(),
+		cfg.WithStorage(cfg.StorageT{
+			AutosaveInterval: 5,
+			SavePath:         "../data",
+			StorageType:      cfg.File,
+		}))
+	fmt.Printf("%+v", s.config)
+
+	s.ctrl = New(s.config)
 	s.ctx = context.Background()
 }
 
@@ -71,13 +76,17 @@ func (s *MemoryTestSuite) TestAddGetURL() {
 	s.Assert().True(ok)
 	s.Assert().Equal(originalURL, original)
 
+	u1, err := url.JoinPath(s.config.Server.BaseURL, shortURL)
+	s.Assert().NoError(err)
+	u2, err := url.JoinPath(s.config.Server.BaseURL, shortURL2)
+	s.Assert().NoError(err)
 	expectedArray := []URLOfOwner{
 		{
-			s.config.Server.BaseURL + "/" + shortURL,
+			u1,
 			originalURL,
 		},
 		{
-			s.config.Server.BaseURL + "/" + shortURL2,
+			u2,
 			originalURL2,
 		},
 	}
@@ -124,5 +133,6 @@ func generateString(n int) string {
 		num, _ := rand.Int(rand.Reader, length)
 		b[i] = letters[num.Int64()]
 	}
+
 	return string(b)
 }

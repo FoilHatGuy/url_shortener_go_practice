@@ -1,5 +1,11 @@
 package cfg
 
+const (
+	None     = "none"
+	Database = "Database"
+	File     = "File"
+)
+
 // ConfigT
 // Parent structure for all configuration structs. provides config separation into
 // ShortenerT, ServerT and StorageT for the ease of use
@@ -13,8 +19,8 @@ type ConfigT struct {
 // Contains the required URLLength to return to user and Secret for cookie encryption.
 // Can be accessed via a structure of type ConfigT
 type ShortenerT struct {
-	Secret    string
-	URLLength int
+	Secret    string `default:"12345qwerty"`
+	URLLength int    `default:"10"`
 }
 
 // ServerT
@@ -22,10 +28,10 @@ type ShortenerT struct {
 // Additionally, stores CookieLifetime used in session IDs.
 // Can be accessed via a structure of type ConfigT
 type ServerT struct {
-	Address        string
-	Port           string
-	BaseURL        string
-	CookieLifetime int
+	Address        string `default:"localhost:8080"`
+	Port           string `default:"8080"`
+	BaseURL        string `default:"http://localhost:8080"`
+	CookieLifetime int    `default:"30 * 24 * 60 * 60"`
 }
 
 // StorageT
@@ -34,8 +40,8 @@ type ServerT struct {
 // that performs auto saves to SavePath every AutosaveInterval seconds
 // Can be accessed via a structure of type ConfigT
 type StorageT struct {
-	AutosaveInterval int
-	SavePath         string
-	StorageType      string
-	DatabaseDSN      string
+	AutosaveInterval int    `default:"-1"`
+	SavePath         string `default:"./data/data"`
+	StorageType      string `default:"File"`
+	DatabaseDSN      string `default:""`
 }

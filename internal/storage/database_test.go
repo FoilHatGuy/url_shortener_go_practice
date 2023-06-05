@@ -13,7 +13,7 @@ type DBTestSuite struct {
 }
 
 func (s *DBTestSuite) SetupTest() {
-	cfg.Initialize()
+	cfg.New(cfg.FromDefaults())
 }
 
 func (s *DBTestSuite) TestGetPostRequest() {
