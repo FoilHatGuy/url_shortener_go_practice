@@ -43,7 +43,7 @@ func BenchmarkServer(b *testing.B) {
 		_ = resp.Body.Close()
 	}
 	for i := 0; i < b.N*5; i++ {
-		bigN, _ := rand.Int(rand.Reader, big.NewInt(100))
+		bigN, _ := rand.Int(rand.Reader, big.NewInt(int64(len(strings))))
 		d := bigN.Int64()
 		short := strings[d]
 
