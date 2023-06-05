@@ -10,7 +10,7 @@ import (
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT
 func New(config *cfg.ConfigT) DatabaseORM {
 	var controller DatabaseORM
-	if config.Storage.StorageType == cfg.Database {
+	if config.Storage.DatabaseDSN != "" {
 		controller = databaseInitialize(config)
 		if controller == nil {
 			controller = getMemoryController(config)
