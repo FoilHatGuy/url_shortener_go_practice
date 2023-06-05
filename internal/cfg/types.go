@@ -1,11 +1,5 @@
 package cfg
 
-const (
-	None     = "none"
-	Database = "Database"
-	File     = "File"
-)
-
 // ConfigT
 // Parent structure for all configuration structs. provides config separation into
 // ShortenerT, ServerT and StorageT for the ease of use
@@ -36,12 +30,10 @@ type ServerT struct {
 
 // StorageT
 // Contains database configuration. DatabaseDSN contains string used for connection to Postgres DB.
-// If said variable is not provided StorageType defaults to 'file',
-// that performs auto saves to SavePath every AutosaveInterval seconds
+// Performs auto saves to SavePath every AutosaveInterval seconds
 // Can be accessed via a structure of type ConfigT
 type StorageT struct {
 	AutosaveInterval int    `default:"-1"`
 	SavePath         string `default:"./data/data"`
-	StorageType      string `default:"File"`
 	DatabaseDSN      string `default:""`
 }

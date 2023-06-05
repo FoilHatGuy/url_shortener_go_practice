@@ -51,7 +51,6 @@ func (s *ConfigTestSuite) TestWithStorage() {
 	source := StorageT{
 		AutosaveInterval: 10,
 		SavePath:         "FILE_STORAGE_PATH_VALUE",
-		StorageType:      "STORAGE_TYPE_VALUE",
 		DatabaseDSN:      "DATABASE_DSN_VALUE",
 	}
 	config1 := New(
@@ -73,7 +72,6 @@ func (s *ConfigTestSuite) TestFromEnv() {
 		serverCookieLifetime    = 20
 		storageAutosaveInterval = 30
 		fileStoragePath         = "FILE_STORAGE_PATH_VALUE"
-		storageType             = "STORAGE_TYPE_VALUE"
 		databaseDsn             = "DATABASE_DSN_VALUE"
 	)
 	t.Setenv("SECRET", secret)
@@ -84,7 +82,6 @@ func (s *ConfigTestSuite) TestFromEnv() {
 	t.Setenv("SERVER_COOKIE_LIFETIME", strconv.Itoa(serverCookieLifetime))
 	t.Setenv("STORAGE_AUTOSAVE_INTERVAL", strconv.Itoa(storageAutosaveInterval))
 	t.Setenv("FILE_STORAGE_PATH", fileStoragePath)
-	t.Setenv("STORAGE_TYPE", storageType)
 	t.Setenv("DATABASE_DSN", databaseDsn)
 
 	config1 := &ConfigT{
@@ -103,7 +100,6 @@ func (s *ConfigTestSuite) TestFromEnv() {
 		Storage: StorageT{
 			AutosaveInterval: storageAutosaveInterval,
 			SavePath:         fileStoragePath,
-			StorageType:      storageType,
 			DatabaseDSN:      databaseDsn,
 		},
 	}

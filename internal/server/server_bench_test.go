@@ -20,7 +20,6 @@ func BenchmarkServer(b *testing.B) {
 	// initializing server
 	config := cfg.New(cfg.FromDefaults())
 	auth.New(config)
-	config.Storage.StorageType = cfg.None
 	storage.New(config)
 	go Run(config)
 	client := http.Client{

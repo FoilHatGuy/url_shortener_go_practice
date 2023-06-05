@@ -26,7 +26,6 @@ func (s *MemoryTestSuite) SetupTest() {
 		cfg.WithStorage(cfg.StorageT{
 			AutosaveInterval: 5,
 			SavePath:         "../data",
-			StorageType:      cfg.File,
 		}))
 	fmt.Printf("%+v", s.config)
 

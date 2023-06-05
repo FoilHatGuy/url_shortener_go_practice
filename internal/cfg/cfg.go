@@ -41,6 +41,9 @@ func New(opts ...ConfigOption) *ConfigT {
 	return cfg
 }
 
+// FromDefaults
+//
+//	@Description: Initializes default values of type ConfigT
 func FromDefaults() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		defaults.SetDefaults(c)
@@ -48,6 +51,9 @@ func FromDefaults() ConfigOption {
 	}
 }
 
+// FromEnv
+//
+//	@Description: Overwrites existing values with values from environment (if present)
 func FromEnv() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c = &ConfigT{
@@ -66,7 +72,6 @@ func FromEnv() ConfigOption {
 			Storage: StorageT{
 				AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(c.Storage.AutosaveInterval).Int(),
 				SavePath:         genv.Key("FILE_STORAGE_PATH").Default(c.Storage.SavePath).String(),
-				StorageType:      genv.Key("STORAGE_TYPE").Default(c.Storage.StorageType).String(),
 				DatabaseDSN:      genv.Key("DATABASE_DSN").Default(c.Storage.DatabaseDSN).String(),
 			},
 		}
@@ -74,6 +79,9 @@ func FromEnv() ConfigOption {
 	}
 }
 
+// FromFlags
+//
+//	@Description: Overwrites existing values with values from flags (if present)
 func FromFlags() ConfigOption {
 	if !flag.Parsed() {
 		flag.Parse()

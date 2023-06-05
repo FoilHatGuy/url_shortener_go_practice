@@ -28,6 +28,8 @@ func New(config *cfg.ConfigT) *EngineT {
 	}
 }
 
+// EngineT
+// Main operating struct. To initialize call New()
 type EngineT struct {
 	crypt  cipher.Block
 	secret []byte

@@ -26,7 +26,7 @@ func (s *ServerTestSuite) SetupSuite() {
 	s.config = cfg.New(
 		cfg.FromDefaults(),
 		cfg.WithStorage(cfg.StorageT{
-			StorageType: cfg.None,
+			SavePath: "../data",
 		}),
 	)
 	fmt.Printf("%+v", s.config)
