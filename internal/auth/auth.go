@@ -36,6 +36,8 @@ type EngineT struct {
 	config *cfg.ConfigT
 }
 
+// SessionValidator
+// @Description: Interface for interaction with EngineT
 type SessionValidator interface {
 	Validate(cookie string) (key string, err error)
 	Generate() (cookie string, key string)

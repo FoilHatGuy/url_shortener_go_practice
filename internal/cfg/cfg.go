@@ -22,6 +22,8 @@ func init() {
 	flag.StringVar(&fileStoragePath, "f", "", "File storage path")
 }
 
+// ConfigOption
+// Various options that can be used in New() to set up configs
 type ConfigOption func(*ConfigT) *ConfigT
 
 // New
