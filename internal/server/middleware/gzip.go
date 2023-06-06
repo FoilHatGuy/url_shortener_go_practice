@@ -1,43 +1,16 @@
-package server
+package middleware
 
 import (
 	"compress/gzip"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"shortener/internal/cfg"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
-func Cooker() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cookie, err := c.Cookie("user")
-		var key string
-		if err == nil {
-			//fmt.Println("UID COOKIE PRESENT:\n", cookie)
-
-			key, err = engine.validate(cookie)
-			//fmt.Println("VALIDATION RESULT:\n", key, err)
-			if err == nil {
-				c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.Address, false, true)
-				c.Set("owner", key)
-				//fmt.Println("UID KEY:\n", key)
-				c.Next()
-				return
-			}
-		}
-		//fmt.Println("UID COOKIE MET ERROR:\n", err)
-		cookie, key, err = engine.generate()
-		//fmt.Println("NEW COOKIE GENERATED:\n", cookie)
-		//fmt.Println("NEW UID KEY:\n", key)
-		if err != nil {
-			c.Status(http.StatusUnauthorized)
-			return
-		}
-		c.SetCookie("user", cookie, cfg.Server.CookieLifetime, "/", cfg.Server.Address, false, true)
-		c.Set("owner", key)
-		c.Next()
-	}
-}
+// Gunzip
+// Performs the data decompression if the contentType is gzip.
+// If no errors met during unpacking, passes the request to next handler.
 func Gunzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		contentType := c.GetHeader("Content-Encoding")
@@ -50,12 +23,21 @@ func Gunzip() gin.HandlerFunc {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-		defer gzipR.Close()
+		defer func(gzipR *gzip.Reader) {
+			err := gzipR.Close()
+			if err != nil {
+				c.Status(http.StatusInternalServerError)
+				return
+			}
+		}(gzipR)
 		c.Request.Body = gzipR
 		c.Next()
 	}
 }
 
+// Gzip
+// Performs the data compression if the acceptsType is application/gzip.
+// Adds layer to gin.ResponseWriter that performs compression
 func Gzip() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		acceptsType := c.GetHeader("Accept-Encoding")
@@ -80,15 +62,18 @@ func Gzip() gin.HandlerFunc {
 	}
 }
 
+// gzipWriter is a custom writer user for compressing responses
 type gzipWriter struct {
 	gin.ResponseWriter
 	writer *gzip.Writer
 }
 
+// WriteString replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	return g.writer.Write([]byte(s))
 }
 
+// Write replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	return g.writer.Write(data)
 }

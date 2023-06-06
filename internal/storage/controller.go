@@ -2,42 +2,39 @@ package storage
 
 import (
 	"context"
+
 	"shortener/internal/cfg"
 )
 
-type controllerT struct {
-	memory   DatabaseORM
-	database DatabaseORM
-}
-
-var Controller DatabaseORM
-
-func Initialize() {
-	switch cfg.Storage.StorageType {
-	case "none":
-		fallthrough
-	case "file":
-		Controller = memory
-		//fallthrough
-	case "database":
-		Controller = databaseInitialize()
+// New
+// Performs initial setup of main operating variable using configuration from cfg.ConfigT
+func New(config *cfg.ConfigT) DatabaseORM {
+	var controller DatabaseORM
+	if config.Storage.DatabaseDSN != "" {
+		controller = databaseInitialize(config)
+		if controller == nil {
+			controller = getMemoryController(config)
+		}
+	} else {
+		controller = getMemoryController(config)
 	}
-	//Controller = controllerT{
-	//	memory:   memory,
-	//	database: databaseInitialize(),
-	//}
-	Controller.Initialize()
+	controller.Initialize()
+	return controller
 }
 
+// URLOfOwner is a structure returned by DatabaseORM.GetURLByOwner method
 type URLOfOwner struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
+
+// DatabaseORM
+// Interface for realization of all used methods that need the database interactions. Can support multiple realizations.
 type DatabaseORM interface {
 	Initialize()
-	AddURL(context.Context, string, string) (string, bool, error)
-	GetURL(context.Context, string) (string, bool, error)
-	GetURLByOwner(context.Context, string) ([]URLOfOwner, error)
-	Ping(context.Context) bool
-	Delete(context.Context, []string, string) error
+	AddURL(ctx context.Context, original string, short string, user string) (ok bool, existing string, err error)
+	GetURL(ctx context.Context, short string) (original string, ok bool, err error)
+	GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error)
+	Ping(ctx context.Context) (ok bool)
+	Delete(ctx context.Context, stringArray []string, owner string) (err error)
 }

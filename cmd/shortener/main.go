@@ -3,14 +3,15 @@ package main
 import (
 	"shortener/internal/cfg"
 	"shortener/internal/server"
-	"shortener/internal/storage"
 )
 
 //func init() {
 //}
 
 func main() {
-	cfg.Initialize()
-	storage.Initialize()
-	server.Run()
+	cfgData := cfg.New(cfg.FromDefaults(),
+		cfg.FromFlags(),
+		cfg.FromEnv(),
+	)
+	server.Run(cfgData)
 }
