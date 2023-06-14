@@ -4,6 +4,13 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
+  custom-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+      - run: go install ./cmd/staticlint
+      - run: staticlint .
   golangci:
     name: golangci-lint
     concurrency:
@@ -16,3 +23,4 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.52.0
+      - name: ac
