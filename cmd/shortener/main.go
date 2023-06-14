@@ -5,9 +5,6 @@ import (
 	"shortener/internal/server"
 )
 
-//func init() {
-//}
-
 func main() {
 	cfgData := cfg.New(cfg.FromDefaults(),
 		cfg.FromFlags(),
