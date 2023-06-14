@@ -1,16 +1,24 @@
 name: lint
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 jobs:
   custom-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v3
-      - run: go install ./cmd/staticlint
-      - run: staticlint .
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v3
+
+      - name: build
+        run: go install -x -v ./cmd/staticlint
+
+      - name: execute linter
+        run: staticlint .
   golangci:
     name: golangci-lint
     concurrency:
