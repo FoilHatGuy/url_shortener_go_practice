@@ -24,7 +24,7 @@ func main() {
 		shadow.Analyzer,
 
 		structtag.Analyzer,
-		OsExitFromMainAnalyzer,
+		osExitFromMainAnalyzer,
 	)
 
 	multichecker.Main(checkers...)

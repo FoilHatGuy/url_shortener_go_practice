@@ -1,28 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 
 	"golang.org/x/tools/go/analysis"
 )
 
-// OsExitFromMainAnalyzer is a linter for unexpected calls of os.Exit from main function
-var OsExitFromMainAnalyzer = &analysis.Analyzer{
+var osExitFromMainAnalyzer = &analysis.Analyzer{
 	Name: "exitFromMain",
 	Doc:  "check for the cas of os.Exit in main()of package main",
 	Run:  run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	if pass.Pkg.Name() != "main" {
-		return nil, nil
-	}
 	for _, file := range pass.Files {
+		if pass.Pkg.Name() != "main" {
+			return nil, nil
+		}
 		// функцией ast.Inspect проходим по всем узлам AST
 		ast.Inspect(file, func(node ast.Node) bool {
-			fmt.Printf("%+v\n", node)
-
 			//nolint:gocritic
 			switch x := node.(type) {
 			case *ast.ExprStmt: // выражение

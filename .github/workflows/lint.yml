@@ -21,7 +21,7 @@ jobs:
         run: go install -x -v ./cmd/staticlint
 
       - name: execute linter
-        run: staticlint .
+        run: staticlint ./cmd/shortener ./internal/server
 
   golangci:
     name: golangci-lint
