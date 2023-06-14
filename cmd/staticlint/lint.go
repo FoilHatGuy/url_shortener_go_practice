@@ -7,6 +7,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
+// OsExitFromMainAnalyzer is a linter for unexpected calls of os.Exit from main function
 var OsExitFromMainAnalyzer = &analysis.Analyzer{
 	Name: "exitFromMain",
 	Doc:  "check for the cas of os.Exit in main()of package main",
