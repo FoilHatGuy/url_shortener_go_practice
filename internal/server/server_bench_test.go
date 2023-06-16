@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	rand "crypto/rand"
+	"crypto/rand"
 	"encoding/json"
 	"io"
 	"math/big"

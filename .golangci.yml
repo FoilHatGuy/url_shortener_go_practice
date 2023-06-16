@@ -127,6 +127,7 @@ linters-settings:
     check-exported: false
   gocritic:
     disabled-checks:
+      - commentedOutCode
       - whyNoLint # https://github.com/go-critic/go-critic/issues/1063
       - importShadow
       - sloppyReassign

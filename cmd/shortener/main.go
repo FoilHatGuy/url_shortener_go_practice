@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"shortener/internal/cfg"
 	"shortener/internal/server"
 )
