@@ -1,7 +1,11 @@
 package cfg
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io"
+	"os"
 
 	"github.com/mcuadros/go-defaults"
 	"github.com/sakirsensoy/genv"
@@ -13,6 +17,8 @@ var (
 	databaseDSN     string
 	baseURL         string
 	fileStoragePath string
+	isHTTPS         bool
+	configPath      string
 )
 
 func init() {
@@ -20,6 +26,8 @@ func init() {
 	flag.StringVar(&databaseDSN, "d", "", "BaseURL for shortened links")
 	flag.StringVar(&baseURL, "b", "", "DSN for database")
 	flag.StringVar(&fileStoragePath, "f", "", "File storage path")
+	flag.BoolVar(&isHTTPS, "s", false, "run server as HTTPS")
+	flag.StringVar(&configPath, "c", "", "path to JSON config")
 }
 
 // ConfigOption
@@ -36,6 +44,10 @@ func New(opts ...ConfigOption) *ConfigT {
 		Storage:   StorageT{},
 	}
 
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
 	for _, o := range opts {
 		cfg = o(cfg)
 	}
@@ -49,6 +61,53 @@ func New(opts ...ConfigOption) *ConfigT {
 func FromDefaults() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		defaults.SetDefaults(c)
+		return c
+	}
+}
+
+// FromJSON
+//
+//	@Description: Overwrites existing values with values from environment (if present)
+func FromJSON() ConfigOption {
+	return func(c *ConfigT) *ConfigT {
+		file, err := os.Open(configPath)
+		if err != nil {
+			fmt.Printf("opening JSON failed. Details: %v", err)
+			return nil
+		}
+		defer func(file *os.File) {
+			_ = file.Close()
+		}(file)
+
+		data := make([]byte, 0)
+		_, err = io.ReadFull(file, data)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+
+		tempConfig := fileJSONT{}
+		err = json.Unmarshal(data, &tempConfig)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		if tempConfig.ServerAddress != "" {
+			c.Server.Address = tempConfig.ServerAddress
+		}
+		if tempConfig.ServerBaseURL != "" {
+			c.Server.BaseURL = tempConfig.ServerBaseURL
+		}
+		if tempConfig.ServerEnableHTTPS {
+			c.Server.IsHTTPS = true
+		}
+		if tempConfig.StorageSavePath != "" {
+			c.Storage.SavePath = tempConfig.StorageSavePath
+		}
+		if tempConfig.StorageDatabaseDsn != "" {
+			c.Storage.DatabaseDSN = tempConfig.StorageDatabaseDsn
+		}
+
 		return c
 	}
 }
@@ -69,6 +128,7 @@ func FromEnv() ConfigOption {
 				Port:           genv.Key("SERVER_PORT").Default(c.Server.Port).String(),
 				BaseURL:        genv.Key("BASE_URL").Default(c.Server.BaseURL).String(),
 				CookieLifetime: genv.Key("SERVER_COOKIE_LIFETIME").Default(c.Server.CookieLifetime).Int(),
+				IsHTTPS:        genv.Key("ENABLE_HTTPS").Default(c.Server.IsHTTPS).Bool(),
 			},
 
 			Storage: StorageT{
@@ -85,16 +145,15 @@ func FromEnv() ConfigOption {
 //
 //	@Description: Overwrites existing values with values from flags (if present)
 func FromFlags() ConfigOption {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
-
 	return func(c *ConfigT) *ConfigT {
 		if serverAddress != "" {
 			c.Server.Address = serverAddress
 		}
 		if baseURL != "" {
 			c.Server.BaseURL = baseURL
+		}
+		if isHTTPS {
+			c.Server.IsHTTPS = true
 		}
 		if databaseDSN != "" {
 			c.Storage.DatabaseDSN = databaseDSN

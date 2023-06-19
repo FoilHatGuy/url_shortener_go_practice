@@ -39,5 +39,10 @@ func Run(config *cfg.ConfigT) {
 
 	pprof.Register(r)
 	fmt.Println("SERVER LISTENING ON", config.Server.Address)
-	log.Fatal(r.Run(config.Server.Address))
+	if config.Server.IsHTTPS {
+		certPEM, certKey := auth.GetCertificate()
+		log.Fatal(r.RunTLS(config.Server.Address, certPEM, certKey))
+	} else {
+		log.Fatal(r.Run(config.Server.Address))
+	}
 }

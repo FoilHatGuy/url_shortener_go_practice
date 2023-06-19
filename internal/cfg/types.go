@@ -1,5 +1,13 @@
 package cfg
 
+type fileJSONT struct {
+	ServerAddress      string `json:"server_address"`
+	ServerBaseURL      string `json:"base_url"`
+	ServerEnableHTTPS  bool   `json:"enable_https"`
+	StorageSavePath    string `json:"file_storage_path"`
+	StorageDatabaseDsn string `json:"database_dsn"`
+}
+
 // ConfigT
 // Parent structure for all configuration structs. provides config separation into
 // ShortenerT, ServerT and StorageT for the ease of use
@@ -26,6 +34,7 @@ type ServerT struct {
 	Port           string `default:"8080"`
 	BaseURL        string `default:"http://localhost:8080"`
 	CookieLifetime int    `default:"30 * 24 * 60 * 60"`
+	IsHTTPS        bool   `default:"false"`
 }
 
 // StorageT
