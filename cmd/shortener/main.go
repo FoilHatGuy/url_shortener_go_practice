@@ -19,6 +19,7 @@ func main() {
 	fmt.Printf("buildCommit\t= %q\n", buildCommit)
 
 	cfgData := cfg.New(cfg.FromDefaults(),
+		cfg.FromJSON(),
 		cfg.FromFlags(),
 		cfg.FromEnv(),
 	)

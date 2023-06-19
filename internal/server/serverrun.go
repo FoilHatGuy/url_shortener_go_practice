@@ -1,8 +1,14 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"shortener/internal/auth"
 	"shortener/internal/storage"
@@ -38,10 +44,36 @@ func Run(config *cfg.ConfigT) {
 	api.DELETE("/user/urls", handlers.DeleteLine(dbController))
 
 	pprof.Register(r)
-	fmt.Println("SERVER LISTENING ON", config.Server.Address)
-	if config.Server.IsHTTPS {
+
+	// end of handlers' declaration
+	srv := &http.Server{
+		Addr:              config.Server.Address,
+		Handler:           r,
+		ReadHeaderTimeout: time.Second,
+	}
+
+	go func() { // run server in separate goroutine
+		fmt.Println("SERVER LISTENING ON", config.Server.Address)
+		if !config.Server.IsHTTPS {
+			log.Fatal(srv.ListenAndServe())
+		} // else
+
 		certPEM, certKey := auth.GetCertificate()
-		log.Fatal(r.RunTLS(config.Server.Address, certPEM, certKey))
-	} // else
-	log.Fatal(r.Run(config.Server.Address))
+		log.Fatal(srv.ListenAndServeTLS(certPEM, certKey))
+	}()
+
+	// graceful shutdown setup
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	<-shutdown // wait for signal on channel
+	log.Println("Initiating graceful shutdown")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := srv.Shutdown(ctx); err != nil {
+		cancel()
+		log.Fatal("Server Shutdown:", err)
+	}
+	cancel()
+	log.Println("Server exiting")
 }

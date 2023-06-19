@@ -69,6 +69,10 @@ func FromDefaults() ConfigOption {
 //	@Description: Overwrites existing values with values from environment (if present)
 func FromJSON() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
+		configPath = genv.Key("CONFIG").Default(configPath).String()
+		if configPath == "" {
+			return c
+		}
 		data, err := os.ReadFile(configPath)
 		if err != nil {
 			fmt.Printf("opening JSON failed. Details: %v", err)

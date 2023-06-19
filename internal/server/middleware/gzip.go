@@ -72,11 +72,17 @@ type gzipWriter struct {
 // WriteString replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	res, err := g.writer.Write([]byte(s))
-	return res, fmt.Errorf("while writing string with gzip:\n %w", err)
+	if err != nil {
+		return 0, fmt.Errorf("while writing with gzip:\n %w", err)
+	}
+	return res, nil
 }
 
 // Write replaces original method so that the output is compressed using gzip
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	res, err := g.writer.Write(data)
-	return res, fmt.Errorf("while writing with gzip:\n %w", err)
+	if err != nil {
+		return 0, fmt.Errorf("while writing with gzip:\n %w", err)
+	}
+	return res, nil
 }

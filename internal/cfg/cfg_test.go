@@ -188,6 +188,41 @@ func (s *ConfigTestSuite) TestFromJSONFile() {
 	)
 }
 
+func (s *ConfigTestSuite) TestParseFlagsTwice() {
+	const (
+		address     = "Address"
+		baseURL     = "BaseURL"
+		databaseDSN = "DatabaseDSN"
+		savePath    = "SavePath"
+		isHTTPS     = true
+	)
+
+	err := flag.Set("a", address)
+	s.Assert().NoError(err)
+	err = flag.Set("b", baseURL)
+	s.Assert().NoError(err)
+	err = flag.Set("d", databaseDSN)
+	s.Assert().NoError(err)
+	err = flag.Set("f", savePath)
+	s.Assert().NoError(err)
+	err = flag.Set("s", fmt.Sprintf("%t", isHTTPS))
+	s.Assert().NoError(err)
+
+	config1 := New(
+		FromFlags(),
+	)
+
+	config2 := New(
+		FromFlags(),
+	)
+
+	s.Assert().Equal(config1.Server.Address, config2.Server.Address)
+	s.Assert().Equal(config1.Server.BaseURL, config2.Server.BaseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, config2.Server.IsHTTPS)
+	s.Assert().Equal(config1.Storage.DatabaseDSN, config2.Storage.DatabaseDSN)
+	s.Assert().Equal(config1.Storage.SavePath, config2.Storage.SavePath)
+}
+
 func TestExampleTestSuite(t *testing.T) {
 	suite.Run(t, new(ConfigTestSuite))
 }
