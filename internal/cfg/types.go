@@ -5,7 +5,7 @@ type fileJSONT struct {
 	ServerBaseURL      string `json:"base_url"`
 	ServerEnableHTTPS  bool   `json:"enable_https"`
 	StorageSavePath    string `json:"file_storage_path"`
-	StorageDatabaseDsn string `json:"database_dsn"`
+	StorageDatabaseDSN string `json:"database_dsn"`
 }
 
 // ConfigT

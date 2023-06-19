@@ -1,7 +1,10 @@
 package cfg
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
+	"os"
 	"strconv"
 	"testing"
 
@@ -111,10 +114,13 @@ func (s *ConfigTestSuite) TestFromEnv() {
 }
 
 func (s *ConfigTestSuite) TestFromFlags() {
-	address := "Address"
-	baseURL := "BaseURL"
-	databaseDSN := "DatabaseDSN"
-	savePath := "SavePath"
+	const (
+		address     = "Address"
+		baseURL     = "BaseURL"
+		databaseDSN = "DatabaseDSN"
+		savePath    = "SavePath"
+		isHTTPS     = true
+	)
 
 	err := flag.Set("a", address)
 	s.Assert().NoError(err)
@@ -124,6 +130,8 @@ func (s *ConfigTestSuite) TestFromFlags() {
 	s.Assert().NoError(err)
 	err = flag.Set("f", savePath)
 	s.Assert().NoError(err)
+	err = flag.Set("s", fmt.Sprintf("%t", isHTTPS))
+	s.Assert().NoError(err)
 
 	config1 := New(FromDefaults(),
 		FromFlags(),
@@ -131,8 +139,53 @@ func (s *ConfigTestSuite) TestFromFlags() {
 
 	s.Assert().Equal(config1.Server.Address, address)
 	s.Assert().Equal(config1.Server.BaseURL, baseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, isHTTPS)
 	s.Assert().Equal(config1.Storage.DatabaseDSN, databaseDSN)
 	s.Assert().Equal(config1.Storage.SavePath, savePath)
+}
+
+func (s *ConfigTestSuite) TestFromJSONFile() {
+	const filePath = "./test.json"
+	origin := fileJSONT{
+		ServerAddress:      "1",
+		ServerBaseURL:      "2",
+		ServerEnableHTTPS:  true,
+		StorageSavePath:    "3",
+		StorageDatabaseDSN: "4",
+	}
+
+	New(
+		FromJSON(),
+	) // cause an error
+
+	file, _ := json.MarshalIndent(origin, "", "\t")
+	//nolint:gosec
+	_ = os.WriteFile(filePath, file, 0o300)
+	defer func() {
+		err := os.Remove(filePath)
+		s.Assert().NoError(err)
+	}()
+
+	err := flag.Set("c", filePath)
+	s.Assert().NoError(err)
+
+	config1 := New(
+		FromJSON(),
+	)
+
+	s.Assert().Equal(config1.Server.Address, origin.ServerAddress)
+	s.Assert().Equal(config1.Server.BaseURL, origin.ServerBaseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, origin.ServerEnableHTTPS)
+	s.Assert().Equal(config1.Storage.DatabaseDSN, origin.StorageDatabaseDSN)
+	s.Assert().Equal(config1.Storage.SavePath, origin.StorageSavePath)
+
+	// broken file
+	file, _ = json.MarshalIndent(origin, "\"", "\"")
+	//nolint:gosec
+	_ = os.WriteFile(filePath, file, 0o300)
+	New(
+		FromJSON(),
+	)
 }
 
 func TestExampleTestSuite(t *testing.T) {

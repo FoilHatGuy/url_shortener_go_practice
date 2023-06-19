@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/mcuadros/go-defaults"
@@ -70,19 +69,9 @@ func FromDefaults() ConfigOption {
 //	@Description: Overwrites existing values with values from environment (if present)
 func FromJSON() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
-		file, err := os.Open(configPath)
+		data, err := os.ReadFile(configPath)
 		if err != nil {
 			fmt.Printf("opening JSON failed. Details: %v", err)
-			return nil
-		}
-		defer func(file *os.File) {
-			_ = file.Close()
-		}(file)
-
-		data := make([]byte, 0)
-		_, err = io.ReadFull(file, data)
-		if err != nil {
-			fmt.Println(err)
 			return nil
 		}
 
@@ -104,8 +93,8 @@ func FromJSON() ConfigOption {
 		if tempConfig.StorageSavePath != "" {
 			c.Storage.SavePath = tempConfig.StorageSavePath
 		}
-		if tempConfig.StorageDatabaseDsn != "" {
-			c.Storage.DatabaseDSN = tempConfig.StorageDatabaseDsn
+		if tempConfig.StorageDatabaseDSN != "" {
+			c.Storage.DatabaseDSN = tempConfig.StorageDatabaseDSN
 		}
 
 		return c

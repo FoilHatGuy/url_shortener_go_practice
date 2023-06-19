@@ -42,7 +42,6 @@ func Run(config *cfg.ConfigT) {
 	if config.Server.IsHTTPS {
 		certPEM, certKey := auth.GetCertificate()
 		log.Fatal(r.RunTLS(config.Server.Address, certPEM, certKey))
-	} else {
-		log.Fatal(r.Run(config.Server.Address))
-	}
+	} // else
+	log.Fatal(r.Run(config.Server.Address))
 }

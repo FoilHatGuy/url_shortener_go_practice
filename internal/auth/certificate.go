@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// GetCertificate
+//
+//	@Description: Generates a new PEM certificate required for HTTPS server
 func GetCertificate() (stringCertPEM, stringCertKey string) {
 	cert := &x509.Certificate{
 		SerialNumber: big.NewInt(1658),
