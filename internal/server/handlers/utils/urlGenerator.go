@@ -5,8 +5,10 @@ import (
 	"math/big"
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-var runeLength = big.NewInt(int64(len(letters)))
+var (
+	letters    = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	runeLength = big.NewInt(int64(len(letters)))
+)
 
 // RandSeq
 // Generates random sequence of letters (both upper- and lower-case) of desired length

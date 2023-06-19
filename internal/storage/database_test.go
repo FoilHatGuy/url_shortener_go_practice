@@ -10,10 +10,13 @@ import (
 
 type DBTestSuite struct {
 	suite.Suite
+	config *cfg.ConfigT
+	db     DatabaseORM
 }
 
 func (s *DBTestSuite) SetupTest() {
-	cfg.New(cfg.FromDefaults())
+	s.config = cfg.New(cfg.FromDefaults())
+	s.db = databaseInitialize(s.config)
 }
 
 func (s *DBTestSuite) TestGetPostRequest() {
