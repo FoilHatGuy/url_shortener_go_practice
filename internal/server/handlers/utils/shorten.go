@@ -31,7 +31,7 @@ func Shorten(
 	shortURL := RandSeq(config.Shortener.URLLength)
 	added, existing, err := dbController.AddURL(ctx, inputURL, shortURL, owner)
 	if err != nil {
-		return "", added, err
+		return "", added, fmt.Errorf("while shortening:\n %w", err)
 	}
 	if !added {
 		shortURL = existing
