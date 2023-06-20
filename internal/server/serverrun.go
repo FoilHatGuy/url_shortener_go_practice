@@ -55,11 +55,15 @@ func Run(config *cfg.ConfigT) {
 	go func() { // run server in separate goroutine
 		fmt.Println("SERVER LISTENING ON", config.Server.Address)
 		if !config.Server.IsHTTPS {
-			log.Fatal(srv.ListenAndServe())
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("listen: %s\n", err)
+			}
 		} // else
 
 		certPEM, certKey := auth.GetCertificate()
-		log.Fatal(srv.ListenAndServeTLS(certPEM, certKey))
+		if err := srv.ListenAndServeTLS(certPEM, certKey); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
 	}()
 
 	// graceful shutdown setup
@@ -76,4 +80,5 @@ func Run(config *cfg.ConfigT) {
 	}
 	cancel()
 	log.Println("Server exiting")
+	os.Exit(0)
 }
