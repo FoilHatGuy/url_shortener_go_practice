@@ -159,8 +159,8 @@ func (s *ConfigTestSuite) TestFromJSONFile() {
 	) // cause an error
 
 	file, _ := json.MarshalIndent(origin, "", "\t")
-	//nolint:gosec
-	_ = os.WriteFile(filePath, file, 0o300)
+
+	_ = os.WriteFile(filePath, file, 0o600)
 	defer func() {
 		err := os.Remove(filePath)
 		s.Assert().NoError(err)
