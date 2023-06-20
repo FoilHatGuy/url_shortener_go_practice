@@ -2,12 +2,11 @@ package auth
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"log"
+	"fmt"
 	"math/big"
 	"net"
 	"time"
@@ -16,7 +15,7 @@ import (
 // GetCertificate
 //
 //	@Description: Generates a new PEM certificate required for HTTPS server
-func GetCertificate() (stringCertPEM, stringCertKey string) {
+func (e *EngineT) GetCertificate() (stringCertPEM, stringCertKey string, err error) {
 	cert := &x509.Certificate{
 		SerialNumber: big.NewInt(1658),
 		Subject: pkix.Name{
@@ -31,15 +30,15 @@ func GetCertificate() (stringCertPEM, stringCertKey string) {
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("reading random bytes caused a panic: %w", r.(error))
+		}
+	}()
+	privateKey, err := rsa.GenerateKey(e.randomReader, 4096)
+	certBytes, err := x509.CreateCertificate(e.randomReader, cert, cert, &privateKey.PublicKey, privateKey)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	// создаём сертификат x.509
-	certBytes, err := x509.CreateCertificate(rand.Reader, cert, cert, &privateKey.PublicKey, privateKey)
-	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("while reading random bytes: %w", err)
 	}
 
 	// кодируем сертификат и ключ в формате PEM, который
@@ -61,5 +60,5 @@ func GetCertificate() (stringCertPEM, stringCertKey string) {
 	if err != nil {
 		return
 	}
-	return certPEM.String(), privateKeyPEM.String()
+	return certPEM.String(), privateKeyPEM.String(), nil
 }

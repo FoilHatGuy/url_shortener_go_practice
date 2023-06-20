@@ -25,13 +25,13 @@ import (
 // Performs initial setup of server router and launches it.
 func Run(config *cfg.ConfigT) {
 	dbController := storage.New(config)
-
+	authEngine := auth.New(config)
 	r := gin.Default()
 	baseRouter := r.Group("")
 
 	baseRouter.Use(middleware.Gzip())
 	baseRouter.Use(middleware.Gunzip())
-	baseRouter.Use(middleware.Cooker(config, auth.New(config)))
+	baseRouter.Use(middleware.Cooker(config, authEngine))
 	baseRouter.GET("/:shortURL",
 		handlers.GetShortURL(dbController, config))
 	baseRouter.GET("/ping", handlers.PingDatabase(dbController))
@@ -60,7 +60,9 @@ func Run(config *cfg.ConfigT) {
 			}
 		} // else
 
-		certPEM, certKey := auth.GetCertificate()
+		certPEM, certKey, err := authEngine.GetCertificate()
+		if err != nil {
+		}
 		if err := srv.ListenAndServeTLS(certPEM, certKey); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}

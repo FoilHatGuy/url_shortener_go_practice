@@ -7,40 +7,40 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
 
 	"shortener/internal/cfg"
 )
+
+// EngineT
+// Main operating struct. To initialize call New()
+type EngineT struct {
+	crypt        cipher.Block
+	secret       []byte
+	config       *cfg.ConfigT
+	randomReader io.Reader
+}
 
 // New
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT
 func New(config *cfg.ConfigT) *EngineT {
 	key := sha256.Sum256([]byte(config.Shortener.Secret))
-	aesBlock, err := aes.NewCipher(key[:])
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return nil
-	}
+	aesBlock, _ := aes.NewCipher(key[:])
 
 	return &EngineT{
-		crypt:  aesBlock,
-		secret: key[:],
-		config: config,
+		crypt:        aesBlock,
+		secret:       key[:],
+		config:       config,
+		randomReader: rand.Reader,
 	}
-}
-
-// EngineT
-// Main operating struct. To initialize call New()
-type EngineT struct {
-	crypt  cipher.Block
-	secret []byte
-	config *cfg.ConfigT
 }
 
 // SessionValidator
 // @Description: Interface for interaction with EngineT
 type SessionValidator interface {
 	Validate(cookie string) (key string, err error)
-	Generate() (cookie string, key string)
+	Generate() (cookie string, key string, err error)
+	GetCertificate() (stringCertPEM, stringCertKey string, err error)
 }
 
 // Validate
@@ -58,14 +58,14 @@ func (e *EngineT) Validate(cookie string) (key string, err error) {
 
 // Generate
 // Method used for generation of key-sid pair. sid can be validated using Validate
-func (e *EngineT) Generate() (cookie, key string) {
+func (e *EngineT) Generate() (cookie, key string, err error) {
 	b := make([]byte, 16)
-	_, err := rand.Read(b)
+	_, err = e.randomReader.Read(b)
 	if err != nil {
-		return "", ""
+		return "", "", fmt.Errorf("while reading random bytes: %w", err)
 	}
 	dst := make([]byte, aes.BlockSize)
 	e.crypt.Encrypt(dst, b)
 
-	return hex.EncodeToString(dst), hex.EncodeToString(b)
+	return hex.EncodeToString(dst), hex.EncodeToString(b), nil
 }
