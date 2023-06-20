@@ -170,6 +170,7 @@ func (s *ConfigTestSuite) TestFromJSONFile() {
 	s.Assert().NoError(err)
 
 	data, err := os.ReadFile(configPath)
+	s.Assert().NoError(err)
 	s.Assert().NotEmpty(data)
 
 	config1 := New(
