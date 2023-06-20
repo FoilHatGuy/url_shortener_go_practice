@@ -62,6 +62,7 @@ func Run(config *cfg.ConfigT) {
 
 		certPEM, certKey, err := authEngine.GetCertificate()
 		if err != nil {
+			log.Fatalf("certificate generation failed: %w: %s\n", err)
 		}
 		if err := srv.ListenAndServeTLS(certPEM, certKey); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
