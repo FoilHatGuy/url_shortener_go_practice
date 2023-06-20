@@ -29,7 +29,6 @@ func (s *ServerTestSuite) SetupSuite() {
 			SavePath: "../data",
 		}),
 	)
-	fmt.Printf("%+v", s.config)
 	storage.New(s.config)
 	s.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -95,7 +94,7 @@ func (s *ServerTestSuite) TestBatchRequest() {
 	srcReader := bytes.NewBuffer(reqBody)
 	fmt.Println("INPUT URL:\t", srcReader.String())
 
-	fmt.Printf(s.config.Server.BaseURL + "/api/shorten/batch")
+	fmt.Printf(s.config.Server.BaseURL + "/api/shorten/batch\n")
 	respP, err := s.client.Post(s.config.Server.BaseURL+"/api/shorten/batch", "application/json", srcReader)
 	fmt.Println("POST response:\t\t", respP)
 	fmt.Println("POST error   :\t\t", err)

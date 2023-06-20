@@ -75,7 +75,7 @@ func FromJSON() ConfigOption {
 		}
 		data, err := os.ReadFile(configPath)
 		if err != nil {
-			fmt.Printf("opening JSON failed. Details: %v", err)
+			fmt.Printf("opening JSON failed. Details: %v\n", err)
 			return nil
 		}
 

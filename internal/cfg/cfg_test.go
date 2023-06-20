@@ -169,6 +169,9 @@ func (s *ConfigTestSuite) TestFromJSONFile() {
 	err := flag.Set("c", filePath)
 	s.Assert().NoError(err)
 
+	data, err := os.ReadFile(configPath)
+	s.Assert().NotEmpty(data)
+
 	config1 := New(
 		FromJSON(),
 	)
