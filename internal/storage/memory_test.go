@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
 	"math/big"
 	"net/url"
 	"testing"
@@ -27,7 +26,6 @@ func (s *MemoryTestSuite) SetupTest() {
 			AutosaveInterval: 5,
 			SavePath:         "../data",
 		}))
-	fmt.Printf("%+v", s.config)
 
 	s.ctrl = New(s.config)
 	s.ctx = context.Background()

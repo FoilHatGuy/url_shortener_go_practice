@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +33,10 @@ func Cooker(config *cfg.ConfigT, validator auth.SessionValidator) gin.HandlerFun
 			}
 		}
 		// fmt.Println("UID COOKIE MET ERROR:\n", err)
-		cookie, key = validator.Generate()
+		cookie, key, err = validator.Generate()
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+		}
 		// fmt.Println("NEW COOKIE GENERATED:\n", cookie)
 		// fmt.Println("NEW UID KEY:\n", key)
 		c.SetCookie("user", cookie, config.Server.CookieLifetime, "/", config.Server.BaseURL, false, true)

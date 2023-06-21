@@ -1,7 +1,10 @@
 package cfg
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
+	"os"
 	"strconv"
 	"testing"
 
@@ -111,10 +114,13 @@ func (s *ConfigTestSuite) TestFromEnv() {
 }
 
 func (s *ConfigTestSuite) TestFromFlags() {
-	address := "Address"
-	baseURL := "BaseURL"
-	databaseDSN := "DatabaseDSN"
-	savePath := "SavePath"
+	const (
+		address     = "Address"
+		baseURL     = "BaseURL"
+		databaseDSN = "DatabaseDSN"
+		savePath    = "SavePath"
+		isHTTPS     = true
+	)
 
 	err := flag.Set("a", address)
 	s.Assert().NoError(err)
@@ -124,6 +130,8 @@ func (s *ConfigTestSuite) TestFromFlags() {
 	s.Assert().NoError(err)
 	err = flag.Set("f", savePath)
 	s.Assert().NoError(err)
+	err = flag.Set("s", fmt.Sprintf("%t", isHTTPS))
+	s.Assert().NoError(err)
 
 	config1 := New(FromDefaults(),
 		FromFlags(),
@@ -131,8 +139,92 @@ func (s *ConfigTestSuite) TestFromFlags() {
 
 	s.Assert().Equal(config1.Server.Address, address)
 	s.Assert().Equal(config1.Server.BaseURL, baseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, isHTTPS)
 	s.Assert().Equal(config1.Storage.DatabaseDSN, databaseDSN)
 	s.Assert().Equal(config1.Storage.SavePath, savePath)
+}
+
+func (s *ConfigTestSuite) TestFromJSONFile() {
+	const filePath = "./test.json"
+	origin := fileJSONT{
+		ServerAddress:      "1",
+		ServerBaseURL:      "2",
+		ServerEnableHTTPS:  true,
+		StorageSavePath:    "3",
+		StorageDatabaseDSN: "4",
+	}
+
+	New(
+		FromJSON(),
+	) // cause an error
+
+	file, _ := json.MarshalIndent(origin, "", "\t")
+
+	_ = os.WriteFile(filePath, file, 0o600)
+	defer func() {
+		err := os.Remove(filePath)
+		s.Assert().NoError(err)
+	}()
+
+	err := flag.Set("c", filePath)
+	s.Assert().NoError(err)
+
+	data, err := os.ReadFile(configPath)
+	s.Assert().NoError(err)
+	s.Assert().NotEmpty(data)
+
+	config1 := New(
+		FromJSON(),
+	)
+
+	s.Assert().Equal(config1.Server.Address, origin.ServerAddress)
+	s.Assert().Equal(config1.Server.BaseURL, origin.ServerBaseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, origin.ServerEnableHTTPS)
+	s.Assert().Equal(config1.Storage.DatabaseDSN, origin.StorageDatabaseDSN)
+	s.Assert().Equal(config1.Storage.SavePath, origin.StorageSavePath)
+
+	// broken file
+	file, _ = json.MarshalIndent(origin, "\"", "\"")
+	//nolint:gosec
+	_ = os.WriteFile(filePath, file, 0o300)
+	New(
+		FromJSON(),
+	)
+}
+
+func (s *ConfigTestSuite) TestParseFlagsTwice() {
+	const (
+		address     = "Address"
+		baseURL     = "BaseURL"
+		databaseDSN = "DatabaseDSN"
+		savePath    = "SavePath"
+		isHTTPS     = true
+	)
+
+	err := flag.Set("a", address)
+	s.Assert().NoError(err)
+	err = flag.Set("b", baseURL)
+	s.Assert().NoError(err)
+	err = flag.Set("d", databaseDSN)
+	s.Assert().NoError(err)
+	err = flag.Set("f", savePath)
+	s.Assert().NoError(err)
+	err = flag.Set("s", fmt.Sprintf("%t", isHTTPS))
+	s.Assert().NoError(err)
+
+	config1 := New(
+		FromFlags(),
+	)
+
+	config2 := New(
+		FromFlags(),
+	)
+
+	s.Assert().Equal(config1.Server.Address, config2.Server.Address)
+	s.Assert().Equal(config1.Server.BaseURL, config2.Server.BaseURL)
+	s.Assert().Equal(config1.Server.IsHTTPS, config2.Server.IsHTTPS)
+	s.Assert().Equal(config1.Storage.DatabaseDSN, config2.Storage.DatabaseDSN)
+	s.Assert().Equal(config1.Storage.SavePath, config2.Storage.SavePath)
 }
 
 func TestExampleTestSuite(t *testing.T) {
