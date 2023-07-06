@@ -19,22 +19,27 @@ type poolWrapper struct {
 	pool *pgxpool.Pool
 }
 
+// Close is a wrapper function for the Close method of any available pg connection
 func (p poolWrapper) Close() {
 	p.pool.Close()
 }
 
+// Exec is a wrapper function for the Exec method of any available pg connection
 func (p poolWrapper) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
 	return p.pool.Exec(ctx, sql, arguments...) //nolint:wrapcheck
 }
 
+// Query is a wrapper function for the Query method of any available pg connection
 func (p poolWrapper) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	return p.pool.Query(ctx, sql, args...) //nolint:wrapcheck
 }
 
+// QueryRow is a wrapper function for the QueryRow method of any available pg connection
 func (p poolWrapper) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	return p.pool.QueryRow(ctx, sql, args...)
 }
 
+// Ping is a wrapper function for the Ping method of any available pg connection
 func (p poolWrapper) Ping(ctx context.Context) error {
 	return p.pool.Ping(ctx) //nolint:wrapcheck
 }
