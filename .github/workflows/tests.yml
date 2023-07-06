@@ -27,5 +27,5 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           file: ./unit.txt
-          flags: unit,memStore
+          flags: unit
           name: unit

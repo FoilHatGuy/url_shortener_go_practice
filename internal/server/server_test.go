@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package server
 
 import (
@@ -215,8 +218,9 @@ func (s *ServerTestSuite) TestDeleteRequest() {
 	s.Assert().NoError(err)
 }
 
-func (s *ServerTestSuite) TestGetUserRequest() {
-}
+// func (s *ServerTestSuite) TestServerTearDown() {
+//	os.Process.Signal(os.sy)
+//}
 
 func TestServerTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))

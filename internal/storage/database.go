@@ -8,15 +8,47 @@ import (
 	"regexp"
 	"strings"
 
+	"shortener/internal/cfg"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"shortener/internal/cfg"
 )
 
+type poolWrapper struct {
+	pool *pgxpool.Pool
+}
+
+func (p poolWrapper) Close() {
+	p.pool.Close()
+}
+
+func (p poolWrapper) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+	return p.pool.Exec(ctx, sql, arguments...) //nolint:wrapcheck
+}
+
+func (p poolWrapper) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return p.pool.Query(ctx, sql, args...) //nolint:wrapcheck
+}
+
+func (p poolWrapper) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return p.pool.QueryRow(ctx, sql, args...)
+}
+
+func (p poolWrapper) Ping(ctx context.Context) error {
+	return p.pool.Ping(ctx) //nolint:wrapcheck
+}
+
+type databaseI interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Ping(ctx context.Context) error
+	Close()
+}
+
 type databaseT struct {
-	database *pgxpool.Pool
+	database databaseI
 	config   *cfg.ConfigT
 }
 
@@ -24,9 +56,6 @@ type databaseT struct {
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT.
 // Creates the database on postgres specified by cfg.StorageT DatabaseDSN field
 func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
-	if config.Storage.DatabaseDSN == "" {
-		return nil
-	}
 	fmt.Println("CREATING DATABASE")
 	r := regexp.MustCompile(`dbname=[a-zA-Z0-9]*`)
 	initAddress := r.ReplaceAllString(config.Storage.DatabaseDSN, "")
@@ -64,7 +93,7 @@ func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 		return nil
 	}
 	return &databaseT{
-		database: db,
+		database: &poolWrapper{db},
 		config:   config,
 	}
 }
@@ -167,7 +196,6 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 		return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 	}
 	defer rows.Close()
-	fmt.Println(rows)
 	var originalURL, shortURL string
 	for rows.Next() {
 		err = rows.Scan(&shortURL, &originalURL)
@@ -183,8 +211,7 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 
 // Delete marks url as deleted, and it will no longer be accessible by GetURL
 func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
-	fmt.Println(stringArray)
-	q, err := d.database.Exec(ctx, fmt.Sprintf(`
+	_, err := d.database.Exec(ctx, fmt.Sprintf(`
 		UPDATE urls
 		SET deleted = TRUE
 		WHERE short_url IN ('%s') AND short_url IN
@@ -192,7 +219,6 @@ func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner stri
 		    SELECT url FROM users WHERE user_id = $1
 		)
 	`, strings.Join(stringArray, "', '")), owner)
-	fmt.Println("QQQQ\n", q)
 	if err != nil {
 		fmt.Println("ERR", err)
 		return fmt.Errorf("while database.Delete %w", err)
