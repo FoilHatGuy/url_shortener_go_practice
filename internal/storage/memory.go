@@ -152,6 +152,23 @@ func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 	return nil
 }
 
+// GetStats returns the number of urls and users
+func (s *storage) GetStats(_ context.Context) (stats StatsT, err error) {
+	var countURLs, countUsers int64
+	s.Data.Range(func(key, value any) bool {
+		countURLs += int64(len(value.([]string)))
+		return true
+	})
+	s.Owners.Range(func(key, value any) bool {
+		countUsers++
+		return true
+	})
+	return StatsT{
+		Urls:  countURLs,
+		Users: countUsers,
+	}, nil
+}
+
 // Ping checks the database availability
 func (s *storage) Ping(_ context.Context) bool {
 	return true

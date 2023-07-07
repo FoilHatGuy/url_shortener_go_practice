@@ -28,6 +28,11 @@ type URLOfOwner struct {
 	OriginalURL string `json:"original_url"`
 }
 
+type StatsT struct {
+	Urls  int64 `json:"urls"`
+	Users int64 `json:"users"`
+}
+
 // DatabaseORM
 // Interface for realization of all used methods that need the database interactions. Can support multiple realizations.
 type DatabaseORM interface {
@@ -37,4 +42,5 @@ type DatabaseORM interface {
 	GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error)
 	Ping(ctx context.Context) (ok bool)
 	Delete(ctx context.Context, stringArray []string, owner string) (err error)
+	GetStats(ctx context.Context) (stats StatsT, err error)
 }

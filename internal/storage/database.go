@@ -231,6 +231,30 @@ func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner stri
 	return nil
 }
 
+// GetStats returns the number of urls and users
+func (d *databaseT) GetStats(ctx context.Context) (stats StatsT, err error) {
+	var countURLs, countUsers int64
+
+	err = d.database.QueryRow(ctx, `
+	SELECT COUNT(short_url) FROM urls
+`).Scan(&countURLs)
+	if err != nil {
+		return StatsT{}, fmt.Errorf("while database.Stats %w", err)
+	}
+
+	err = d.database.QueryRow(ctx, `
+	SELECT COUNT(DISTINCT user_id) FROM owners
+`).Scan(&countUsers)
+	if err != nil {
+		return StatsT{}, fmt.Errorf("while database.Stats %w", err)
+	}
+
+	return StatsT{
+		Urls:  countURLs,
+		Users: countUsers,
+	}, nil
+}
+
 // Ping checks the database availability
 func (d *databaseT) Ping(ctx context.Context) bool {
 	err := d.database.Ping(ctx)

@@ -42,6 +42,7 @@ func Run(config *cfg.ConfigT) {
 	api.POST("/shorten/batch", handlers.BatchShorten(dbController, config))
 	api.GET("/user/urls", handlers.GetAllOwnedURL(dbController))
 	api.DELETE("/user/urls", handlers.DeleteLine(dbController))
+	api.POST("/internal/stats", handlers.GetStats(dbController, config))
 
 	pprof.Register(r)
 
