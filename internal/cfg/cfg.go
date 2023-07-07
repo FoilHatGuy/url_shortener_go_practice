@@ -18,6 +18,7 @@ var (
 	fileStoragePath string
 	isHTTPS         bool
 	configPath      string
+	trustedSubnet   string
 )
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 	flag.StringVar(&fileStoragePath, "f", "", "File storage path")
 	flag.BoolVar(&isHTTPS, "s", false, "run server as HTTPS")
 	flag.StringVar(&configPath, "c", "", "path to JSON config")
+	flag.StringVar(&trustedSubnet, "t", "", "trusted subnet in CIDR notation")
 }
 
 // ConfigOption
@@ -38,9 +40,9 @@ type ConfigOption func(*ConfigT) *ConfigT
 // Returns the basic config with default values of ConfigT.
 func New(opts ...ConfigOption) *ConfigT {
 	cfg := &ConfigT{
-		Server:    ServerT{},
-		Shortener: ShortenerT{},
-		Storage:   StorageT{},
+		Server:    &ServerT{},
+		Shortener: &ShortenerT{},
+		Storage:   &StorageT{},
 	}
 
 	if !flag.Parsed() {
@@ -94,6 +96,9 @@ func FromJSON() ConfigOption {
 		if tempConfig.ServerEnableHTTPS {
 			c.Server.IsHTTPS = true
 		}
+		if tempConfig.TrustedSubnet != "" {
+			c.Server.TrustedSubnet = tempConfig.TrustedSubnet
+		}
 		if tempConfig.StorageSavePath != "" {
 			c.Storage.SavePath = tempConfig.StorageSavePath
 		}
@@ -111,20 +116,21 @@ func FromJSON() ConfigOption {
 func FromEnv() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c = &ConfigT{
-			Shortener: ShortenerT{
+			Shortener: &ShortenerT{
 				Secret:    genv.Key("SECRET").Default(c.Shortener.Secret).String(),
 				URLLength: genv.Key("SHORT_URL_LENGTH").Default(c.Shortener.URLLength).Int(),
 			},
 
-			Server: ServerT{
+			Server: &ServerT{
 				Address:        genv.Key("SERVER_ADDRESS").Default(c.Server.Address).String(),
 				Port:           genv.Key("SERVER_PORT").Default(c.Server.Port).String(),
 				BaseURL:        genv.Key("BASE_URL").Default(c.Server.BaseURL).String(),
 				CookieLifetime: genv.Key("SERVER_COOKIE_LIFETIME").Default(c.Server.CookieLifetime).Int(),
 				IsHTTPS:        genv.Key("ENABLE_HTTPS").Default(c.Server.IsHTTPS).Bool(),
+				TrustedSubnet:  genv.Key("TRUSTED_SUBNET").Default(c.Server.IsHTTPS).String(),
 			},
 
-			Storage: StorageT{
+			Storage: &StorageT{
 				AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(c.Storage.AutosaveInterval).Int(),
 				SavePath:         genv.Key("FILE_STORAGE_PATH").Default(c.Storage.SavePath).String(),
 				DatabaseDSN:      genv.Key("DATABASE_DSN").Default(c.Storage.DatabaseDSN).String(),
@@ -147,6 +153,9 @@ func FromFlags() ConfigOption {
 		}
 		if isHTTPS {
 			c.Server.IsHTTPS = true
+		}
+		if trustedSubnet != "" {
+			c.Server.TrustedSubnet = trustedSubnet
 		}
 		if databaseDSN != "" {
 			c.Storage.DatabaseDSN = databaseDSN

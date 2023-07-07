@@ -28,11 +28,12 @@ func (s *ConfigTestSuite) TestNew() {
 }
 
 func (s *ConfigTestSuite) TestWithServer() {
-	source := ServerT{
+	source := &ServerT{
 		Address:        "SERVER_ADDRESS_VALUE",
 		Port:           "SERVER_PORT_VALUE",
 		BaseURL:        "BASE_URL_VALUE",
 		CookieLifetime: 20,
+		TrustedSubnet:  "TRUSTED_SUBNET",
 	}
 	config1 := New(
 		FromDefaults(),
@@ -42,7 +43,7 @@ func (s *ConfigTestSuite) TestWithServer() {
 }
 
 func (s *ConfigTestSuite) TestWithShortener() {
-	source := ShortenerT{
+	source := &ShortenerT{
 		Secret:    "SECRET_VALUE",
 		URLLength: 10,
 	}
@@ -54,7 +55,7 @@ func (s *ConfigTestSuite) TestWithShortener() {
 }
 
 func (s *ConfigTestSuite) TestWithStorage() {
-	source := StorageT{
+	source := &StorageT{
 		AutosaveInterval: 10,
 		SavePath:         "FILE_STORAGE_PATH_VALUE",
 		DatabaseDSN:      "DATABASE_DSN_VALUE",
@@ -79,6 +80,7 @@ func (s *ConfigTestSuite) TestFromEnv() {
 		storageAutosaveInterval = 30
 		fileStoragePath         = "FILE_STORAGE_PATH_VALUE"
 		databaseDsn             = "DATABASE_DSN_VALUE"
+		trustedSubnet           = "TRUSTED_SUBNET"
 	)
 	t.Setenv("SECRET", secret)
 	t.Setenv("SHORT_URL_LENGTH", strconv.Itoa(shortURLLength))
@@ -89,21 +91,23 @@ func (s *ConfigTestSuite) TestFromEnv() {
 	t.Setenv("STORAGE_AUTOSAVE_INTERVAL", strconv.Itoa(storageAutosaveInterval))
 	t.Setenv("FILE_STORAGE_PATH", fileStoragePath)
 	t.Setenv("DATABASE_DSN", databaseDsn)
+	t.Setenv("TRUSTED_SUBNET", trustedSubnet)
 
 	config1 := &ConfigT{
-		Shortener: ShortenerT{
+		Shortener: &ShortenerT{
 			Secret:    secret,
 			URLLength: shortURLLength,
 		},
 
-		Server: ServerT{
+		Server: &ServerT{
 			Address:        serverAddress,
 			Port:           serverPort,
 			BaseURL:        baseURL,
 			CookieLifetime: serverCookieLifetime,
+			TrustedSubnet:  trustedSubnet,
 		},
 
-		Storage: StorageT{
+		Storage: &StorageT{
 			AutosaveInterval: storageAutosaveInterval,
 			SavePath:         fileStoragePath,
 			DatabaseDSN:      databaseDsn,
