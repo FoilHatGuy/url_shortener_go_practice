@@ -11,12 +11,12 @@ import (
 // PingDatabase
 // Ping server+database activity
 func PingDatabase(dbController storage.DatabaseORM) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ping := dbController.Ping(c)
+	return func(ctx *gin.Context) {
+		ping := dbController.Ping(ctx)
 		if ping {
-			c.Status(http.StatusOK)
+			ctx.Status(http.StatusOK)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			ctx.Status(http.StatusInternalServerError)
 		}
 	}
 }

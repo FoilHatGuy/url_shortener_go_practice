@@ -13,23 +13,23 @@ import (
 // Get all owned urls.
 // Owner is being calculated via cookie of the requester
 func GetAllOwnedURL(dbController storage.DatabaseORM) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		owner, ok := c.Get("owner")
+	return func(ctx *gin.Context) {
+		owner, ok := ctx.Get("owner")
 		if !ok {
 			fmt.Println("NO OWNER CONTEXT")
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
-		result, err := dbController.GetURLByOwner(c, owner.(string))
+		result, err := dbController.GetURLByOwner(ctx, owner.(string))
 		if err != nil {
 			fmt.Println("ERROR WHILE GETTING DATA FROM DB")
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 		if result != nil {
-			c.IndentedJSON(http.StatusOK, result)
+			ctx.IndentedJSON(http.StatusOK, result)
 		} else {
-			c.Status(http.StatusNoContent)
+			ctx.Status(http.StatusNoContent)
 		}
 	}
 }

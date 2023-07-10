@@ -15,23 +15,23 @@ import (
 // Handler for batch shortening of urs.
 // Takes the field "url" from request body and returns the result in "url" field for accessing original url.
 func PostAPIURL(dbController storage.DatabaseORM, config *cfg.ConfigT) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		var newReqBody struct {
 			URL string `json:"url"`
 		}
-		owner, ok := c.Get("owner")
+		owner, ok := ctx.Get("owner")
 		if !ok {
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 
-		if err := c.BindJSON(&newReqBody); err != nil {
+		if err := ctx.BindJSON(&newReqBody); err != nil {
 			return
 		}
 
-		result, added, err := utils.Shorten(c, dbController, newReqBody.URL, owner.(string), config)
+		result, added, err := utils.Shorten(ctx, dbController, newReqBody.URL, owner.(string), config)
 		if err != nil {
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 
@@ -39,9 +39,9 @@ func PostAPIURL(dbController storage.DatabaseORM, config *cfg.ConfigT) gin.Handl
 			Result string `json:"result"`
 		}{result}
 		if added {
-			c.IndentedJSON(http.StatusCreated, newResBody)
+			ctx.IndentedJSON(http.StatusCreated, newResBody)
 		} else {
-			c.IndentedJSON(http.StatusConflict, newResBody)
+			ctx.IndentedJSON(http.StatusConflict, newResBody)
 		}
 	}
 }

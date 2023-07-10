@@ -18,7 +18,7 @@ import (
 // returns array of following jsons:
 // {"correlation_id": "id of url", "short_url": "url that was shortened"}
 func BatchShorten(dbController storage.DatabaseORM, config *cfg.ConfigT) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		type reqElement struct {
 			LineID string `json:"correlation_id"`
 			URL    string `json:"original_url"`
@@ -29,25 +29,25 @@ func BatchShorten(dbController storage.DatabaseORM, config *cfg.ConfigT) gin.Han
 		}
 		var newReqBody []*reqElement
 		var newResBody []*resElement
-		owner, ok := c.Get("owner")
+		owner, ok := ctx.Get("owner")
 		if !ok {
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 
-		if err := c.BindJSON(&newReqBody); err != nil {
+		if err := ctx.BindJSON(&newReqBody); err != nil {
 			return
 		}
 
 		for _, element := range newReqBody {
-			result, _, err := utils.Shorten(c, dbController, element.URL, owner.(string), config)
+			result, _, err := utils.Shorten(ctx, dbController, element.URL, owner.(string), config)
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				ctx.Status(http.StatusBadRequest)
 				return
 			}
 			newResBody = append(newResBody, &resElement{LineID: element.LineID, URL: result})
 		}
 
-		c.IndentedJSON(http.StatusCreated, newResBody)
+		ctx.IndentedJSON(http.StatusCreated, newResBody)
 	}
 }

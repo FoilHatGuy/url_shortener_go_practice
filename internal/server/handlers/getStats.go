@@ -14,29 +14,29 @@ import (
 // GetStats
 // Ping server+database activity
 func GetStats(dbController storage.DatabaseORM, config *cfg.ConfigT) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		k := c.GetHeader("X-Real-IP")
+	return func(ctx *gin.Context) {
+		k := ctx.GetHeader("X-Real-IP")
 		if k == "" {
-			c.Status(http.StatusInternalServerError)
+			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 		ip := net.ParseIP(k)
 		_, cidr, err := net.ParseCIDR(config.Server.TrustedSubnet)
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 		valid := cidr.Contains(ip)
 		if !valid {
-			c.Status(http.StatusForbidden)
+			ctx.Status(http.StatusForbidden)
 			return
 		}
 
-		data, err := dbController.GetStats(c)
+		data, err := dbController.GetStats(ctx)
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			ctx.Status(http.StatusInternalServerError)
 			return
 		}
-		c.JSON(http.StatusOK, data)
+		ctx.JSON(http.StatusOK, data)
 	}
 }

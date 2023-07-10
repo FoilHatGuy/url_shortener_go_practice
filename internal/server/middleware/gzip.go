@@ -13,26 +13,26 @@ import (
 // Performs the data decompression if the contentType is gzip.
 // If no errors met during unpacking, passes the request to next handler.
 func Gunzip() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		contentType := c.GetHeader("Content-Encoding")
+	return func(ctx *gin.Context) {
+		contentType := ctx.GetHeader("Content-Encoding")
 		if !strings.Contains(contentType, "gzip") {
-			c.Next()
+			ctx.Next()
 			return
 		}
-		gzipR, err := gzip.NewReader(c.Request.Body)
+		gzipR, err := gzip.NewReader(ctx.Request.Body)
 		if err != nil {
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 		defer func(gzipR *gzip.Reader) {
 			err := gzipR.Close()
 			if err != nil {
-				c.Status(http.StatusInternalServerError)
+				ctx.Status(http.StatusInternalServerError)
 				return
 			}
 		}(gzipR)
-		c.Request.Body = gzipR
-		c.Next()
+		ctx.Request.Body = gzipR
+		ctx.Next()
 	}
 }
 
@@ -40,26 +40,26 @@ func Gunzip() gin.HandlerFunc {
 // Performs the data compression if the acceptsType is application/gzip.
 // Adds layer to gin.ResponseWriter that performs compression
 func Gzip() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		acceptsType := c.GetHeader("Accept-Encoding")
+	return func(ctx *gin.Context) {
+		acceptsType := ctx.GetHeader("Accept-Encoding")
 		if !strings.Contains(acceptsType, "gzip") {
 			return
 		}
-		gzipW, err := gzip.NewWriterLevel(c.Writer, gzip.BestSpeed)
+		gzipW, err := gzip.NewWriterLevel(ctx.Writer, gzip.BestSpeed)
 		if err != nil {
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
-		c.Writer.Header().Set("Content-Encoding", "gzip")
-		c.Writer = &gzipWriter{c.Writer, gzipW}
+		ctx.Writer.Header().Set("Content-Encoding", "gzip")
+		ctx.Writer = &gzipWriter{ctx.Writer, gzipW}
 		defer func(gzipW *gzip.Writer) {
 			err := gzipW.Close()
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				ctx.Status(http.StatusBadRequest)
 				return
 			}
 		}(gzipW)
-		c.Next()
+		ctx.Next()
 	}
 }
 

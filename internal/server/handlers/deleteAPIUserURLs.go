@@ -13,23 +13,23 @@ import (
 // Make a url unavailable. Can only delete owned urls.
 // Owner is being calculated via cookie of the requester
 func DeleteLine(dbController storage.DatabaseORM) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		owner, ok := c.Get("owner")
+	return func(ctx *gin.Context) {
+		owner, ok := ctx.Get("owner")
 		if !ok {
 			fmt.Println("NO OWNER CONTEXT")
-			c.Status(http.StatusBadRequest)
+			ctx.Status(http.StatusBadRequest)
 			return
 		}
 		var urls []string
-		if err := c.BindJSON(&urls); err != nil {
-			c.Status(http.StatusInternalServerError)
+		if err := ctx.BindJSON(&urls); err != nil {
+			ctx.Status(http.StatusInternalServerError)
 		}
 
-		c.Status(http.StatusAccepted)
+		ctx.Status(http.StatusAccepted)
 		go func() {
-			err := dbController.Delete(c, urls, owner.(string))
+			err := dbController.Delete(ctx, urls, owner.(string))
 			if err != nil {
-				c.Status(http.StatusInternalServerError)
+				ctx.Status(http.StatusInternalServerError)
 				return
 			}
 		}()
