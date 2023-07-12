@@ -61,7 +61,9 @@ func New(opts ...ConfigOption) *ConfigT {
 //	@Description: Initializes default values of type ConfigT
 func FromDefaults() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
-		defaults.SetDefaults(c)
+		defaults.SetDefaults(c.Shortener)
+		defaults.SetDefaults(c.Server)
+		defaults.SetDefaults(c.Storage)
 		return c
 	}
 }
@@ -87,8 +89,11 @@ func FromJSON() ConfigOption {
 			fmt.Println(err)
 			return nil
 		}
-		if tempConfig.ServerAddress != "" {
-			c.Server.Address = tempConfig.ServerAddress
+		if tempConfig.ServerAddressHTTP != "" {
+			c.Server.AddressHTTP = tempConfig.ServerAddressHTTP
+		}
+		if tempConfig.ServerAddressGRPC != "" {
+			c.Server.AddressGRPC = tempConfig.ServerAddressGRPC
 		}
 		if tempConfig.ServerBaseURL != "" {
 			c.Server.BaseURL = tempConfig.ServerBaseURL
@@ -122,7 +127,8 @@ func FromEnv() ConfigOption {
 			},
 
 			Server: &ServerT{
-				Address:        genv.Key("SERVER_ADDRESS").Default(c.Server.Address).String(),
+				AddressHTTP:    genv.Key("SERVER_ADDRESS").Default(c.Server.AddressHTTP).String(),
+				AddressGRPC:    genv.Key("SERVER_ADDRESS_GRPC").Default(c.Server.AddressGRPC).String(),
 				Port:           genv.Key("SERVER_PORT").Default(c.Server.Port).String(),
 				BaseURL:        genv.Key("BASE_URL").Default(c.Server.BaseURL).String(),
 				CookieLifetime: genv.Key("SERVER_COOKIE_LIFETIME").Default(c.Server.CookieLifetime).Int(),
@@ -146,7 +152,7 @@ func FromEnv() ConfigOption {
 func FromFlags() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		if serverAddress != "" {
-			c.Server.Address = serverAddress
+			c.Server.AddressHTTP = serverAddress
 		}
 		if baseURL != "" {
 			c.Server.BaseURL = baseURL

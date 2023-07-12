@@ -29,7 +29,7 @@ func (s *ServerHTTP) Cooker(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	}
 	ctx.SetCookie("user", newCookie, s.Config.Server.CookieLifetime, "/",
-		strings.Split(s.Config.Server.Address, ":")[0], false, true)
+		strings.Split(s.Config.Server.AddressHTTP, ":")[0], false, true)
 	ctx.Set(string(ownerCtxKey), key)
 	ctx.Next()
 }

@@ -56,13 +56,13 @@ func RunHTTP(config *cfg.ConfigT) {
 
 	// end of handlers' declaration
 	srv.Server = http.Server{
-		Addr:              config.Server.Address,
+		Addr:              config.Server.AddressHTTP,
 		Handler:           r,
 		ReadHeaderTimeout: time.Second,
 	}
 
 	go func() { // run server in separate goroutine
-		fmt.Println("SERVER LISTENING ON", config.Server.Address)
+		fmt.Println("SERVER LISTENING ON", srv.Config.Server.AddressHTTP)
 		if !config.Server.IsHTTPS {
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("listen: %s\n", err)
@@ -102,7 +102,7 @@ func RunGRPC(config *cfg.ConfigT) {
 		Security:                     auth.New(config),
 		Config:                       config,
 	}
-	lis, err := net.Listen("tcp", config.Server.Address)
+	lis, err := net.Listen("tcp", config.Server.AddressGRPC)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
