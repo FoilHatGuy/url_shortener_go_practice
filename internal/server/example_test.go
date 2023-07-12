@@ -6,7 +6,7 @@ import (
 	"shortener/internal/storage"
 )
 
-func ExampleRun() {
+func ExampleRunHTTP() {
 	// First we need to New config, since it is needed in security, storage and server setup functions
 	cfgData := cfg.New(cfg.FromDefaults())
 
@@ -15,9 +15,9 @@ func ExampleRun() {
 	storage.New(cfgData)
 
 	// Finally, we run the server
-	Run(cfgData)
+	RunHTTP(cfgData)
 
 	// Be aware that server blocks further execution,
 	// so if you need to perform further actions while the server is running, we use:
-	go Run(cfgData)
+	go RunHTTP(cfgData)
 }

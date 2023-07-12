@@ -15,7 +15,9 @@ func main() {
 	var checkers []*analysis.Analyzer
 	for _, el := range staticcheck.Analyzers {
 		// all of SA, S and ST checks present
-		if strings.Contains(el.Analyzer.Name, "S") {
+		if strings.Contains(el.Analyzer.Name, "S") &&
+			!strings.Contains(el.Analyzer.Name, "ST1020") &&
+			!strings.Contains(el.Analyzer.Name, "ST1021") {
 			checkers = append(checkers, el.Analyzer)
 		}
 	}

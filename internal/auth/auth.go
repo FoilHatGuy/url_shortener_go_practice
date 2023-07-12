@@ -1,3 +1,4 @@
+// Package auth implements all methods required for creation and verification of secure access to server's contents
 package auth
 
 import (

@@ -113,8 +113,8 @@ func (s *storage) GetURL(_ context.Context, url string) (original string, ok boo
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
-	var result []URLOfOwner
+func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []*URLOfOwner, err error) {
+	var result []*URLOfOwner
 	user, ok := s.Owners.Load(owner)
 	if !ok {
 		return nil, nil
@@ -127,7 +127,7 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []UR
 		v, ok := s.Data.Load(address)
 		if ok {
 			origURL := v.(dataTVal).Original
-			result = append(result, URLOfOwner{fullAddr, origURL})
+			result = append(result, &URLOfOwner{fullAddr, origURL})
 		}
 	}
 	return result, nil

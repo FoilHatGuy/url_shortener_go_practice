@@ -2,13 +2,19 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"google.golang.org/grpc"
+
+	pb "shortener/internal/server/pb"
 
 	"shortener/internal/auth"
 	"shortener/internal/storage"
@@ -18,36 +24,38 @@ import (
 
 	"shortener/internal/cfg"
 	"shortener/internal/server/handlers"
-	"shortener/internal/server/middleware"
 )
 
-// Run
+// RunHTTP
 // Performs initial setup of server router and launches it.
-func Run(config *cfg.ConfigT) {
-	dbController := storage.New(config)
-	authEngine := auth.New(config)
+func RunHTTP(config *cfg.ConfigT) {
+	srv := handlers.ServerHTTP{
+		Database: storage.New(config),
+		Security: auth.New(config),
+		Config:   config,
+	}
+
 	r := gin.Default()
 	baseRouter := r.Group("")
 
-	baseRouter.Use(middleware.Gzip())
-	baseRouter.Use(middleware.Gunzip())
-	baseRouter.Use(middleware.Cooker(config, authEngine))
-	baseRouter.GET("/:shortURL",
-		handlers.GetShortURL(dbController, config))
-	baseRouter.GET("/ping", handlers.PingDatabase(dbController))
-	baseRouter.POST("/", handlers.PostURL(dbController, config))
+	baseRouter.Use(handlers.Gzip())
+	baseRouter.Use(handlers.Gunzip())
+	baseRouter.Use(srv.Cooker)
+	baseRouter.GET("/:shortURL", srv.GetURL)
+	baseRouter.GET("/ping", srv.PingDatabase)
+	baseRouter.POST("/", srv.PostURL)
 
 	api := baseRouter.Group("/api")
-	api.POST("/shorten", handlers.PostAPIURL(dbController, config))
-	api.POST("/shorten/batch", handlers.BatchShorten(dbController, config))
-	api.GET("/user/urls", handlers.GetAllOwnedURL(dbController))
-	api.DELETE("/user/urls", handlers.DeleteLine(dbController))
-	api.POST("/internal/stats", handlers.GetStats(dbController, config))
+	api.POST("/shorten", srv.PostAPIURL)
+	api.POST("/shorten/batch", srv.BatchShorten)
+	api.GET("/user/urls", srv.GetAllOwnedURL)
+	api.DELETE("/user/urls", srv.DeleteURLs)
+	api.POST("/internal/stats", srv.GetStats)
 
 	pprof.Register(r)
 
 	// end of handlers' declaration
-	srv := &http.Server{
+	srv.Server = http.Server{
 		Addr:              config.Server.Address,
 		Handler:           r,
 		ReadHeaderTimeout: time.Second,
@@ -56,16 +64,16 @@ func Run(config *cfg.ConfigT) {
 	go func() { // run server in separate goroutine
 		fmt.Println("SERVER LISTENING ON", config.Server.Address)
 		if !config.Server.IsHTTPS {
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatalf("listen: %s\n", err)
 			}
 		} // else
 
-		certPEM, certKey, err := authEngine.GetCertificate()
+		certPEM, certKey, err := srv.Security.GetCertificate()
 		if err != nil {
 			log.Fatalf("certificate generation failed: %s\n", err)
 		}
-		if err := srv.ListenAndServeTLS(certPEM, certKey); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServeTLS(certPEM, certKey); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
@@ -85,4 +93,23 @@ func Run(config *cfg.ConfigT) {
 	cancel()
 	log.Println("Server exiting")
 	os.Exit(0)
+}
+
+func RunGRPC(config *cfg.ConfigT) {
+	srv := handlers.ServerGRPC{
+		UnimplementedShortenerServer: pb.UnimplementedShortenerServer{},
+		Database:                     storage.New(config),
+		Security:                     auth.New(config),
+		Config:                       config,
+	}
+	lis, err := net.Listen("tcp", config.Server.Address)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer(grpc.UnaryInterceptor(srv.Cooker))
+	pb.RegisterShortenerServer(s, &srv)
+	log.Printf("GRPC server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

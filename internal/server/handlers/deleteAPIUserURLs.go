@@ -1,37 +1,52 @@
 package handlers
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
-	"shortener/internal/storage"
+	pb "shortener/internal/server/pb"
+
+	"github.com/gin-gonic/gin"
 )
 
-// DeleteLine
+// DeleteURLs
 // Make a url unavailable. Can only delete owned urls.
 // Owner is being calculated via cookie of the requester
-func DeleteLine(dbController storage.DatabaseORM) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		owner, ok := ctx.Get("owner")
-		if !ok {
-			fmt.Println("NO OWNER CONTEXT")
-			ctx.Status(http.StatusBadRequest)
+func (s *ServerHTTP) DeleteURLs(ctx *gin.Context) {
+	owner, ok := ctx.Get(string(ownerCtxKey))
+	if !ok {
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
+	var urls []string
+	if err := ctx.BindJSON(&urls); err != nil {
+		ctx.Status(http.StatusInternalServerError)
+	}
+
+	ctx.Status(http.StatusAccepted)
+	go func() {
+		err := s.Database.Delete(ctx, urls, owner.(string))
+		if err != nil {
+			ctx.Status(http.StatusInternalServerError)
 			return
 		}
-		var urls []string
-		if err := ctx.BindJSON(&urls); err != nil {
-			ctx.Status(http.StatusInternalServerError)
-		}
+	}()
+}
 
-		ctx.Status(http.StatusAccepted)
-		go func() {
-			err := dbController.Delete(ctx, urls, owner.(string))
-			if err != nil {
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
-		}()
+// DeleteURLs
+// Make a url unavailable. Can only delete owned urls.
+// Owner is being calculated via cookie of the requester
+func (s *ServerGRPC) DeleteURLs(ctx context.Context, in *pb.DeleteURLIn) (out *pb.Empty, errRPC error) {
+	owner := ctx.Value(ownerCtxKey)
+	urls := in.GetInputURLs()
+
+	err := s.Database.Delete(ctx, urls, owner.(string))
+	if err != nil {
+		errRPC = status.Errorf(codes.Internal, "")
+		return
 	}
+	return
 }

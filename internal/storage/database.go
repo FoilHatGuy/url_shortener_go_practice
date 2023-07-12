@@ -191,7 +191,7 @@ func (d *databaseT) GetURL(ctx context.Context, short string) (original string, 
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
+func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []*URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
@@ -208,7 +208,7 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 			return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 		}
 		fullAddr, _ := url.JoinPath(d.config.Server.BaseURL, shortURL)
-		arrayURLs = append(arrayURLs, URLOfOwner{fullAddr, originalURL})
+		arrayURLs = append(arrayURLs, &URLOfOwner{fullAddr, originalURL})
 	}
 
 	return arrayURLs, nil

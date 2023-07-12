@@ -28,7 +28,7 @@ type ServerTestSuite struct {
 func (s *ServerTestSuite) SetupSuite() {
 	s.config = cfg.New(
 		cfg.FromDefaults(),
-		cfg.WithStorage(cfg.StorageT{
+		cfg.WithStorage(&cfg.StorageT{
 			SavePath: "../data",
 		}),
 	)
@@ -38,7 +38,7 @@ func (s *ServerTestSuite) SetupSuite() {
 			return http.ErrUseLastResponse
 		},
 	}
-	go Run(s.config)
+	go RunHTTP(s.config)
 	time.Sleep(1 * time.Second)
 }
 

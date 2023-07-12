@@ -25,7 +25,7 @@ type MemoryTestSuite struct {
 func (s *MemoryTestSuite) SetupTest() {
 	s.config = cfg.New(
 		cfg.FromDefaults(),
-		cfg.WithStorage(cfg.StorageT{
+		cfg.WithStorage(&cfg.StorageT{
 			AutosaveInterval: 5,
 			SavePath:         "../data",
 		}))
