@@ -95,6 +95,8 @@ func RunHTTP(config *cfg.ConfigT) {
 	os.Exit(0)
 }
 
+// RunGRPC
+// Runs GRPC server on port specified by config, as well as all other required services
 func RunGRPC(config *cfg.ConfigT) {
 	srv := handlers.ServerGRPC{
 		UnimplementedShortenerServer: pb.UnimplementedShortenerServer{},

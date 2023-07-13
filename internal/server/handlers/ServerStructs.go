@@ -16,6 +16,7 @@ var (
 	errInvalidInput = errors.New("input data is erroneous")
 )
 
+// ServerHTTP is a structure containing all required services, as well as embedded server
 type ServerHTTP struct {
 	http.Server
 	Database storage.DatabaseORM
@@ -23,6 +24,7 @@ type ServerHTTP struct {
 	Config   *cfg.ConfigT
 }
 
+// ServerGRPC is a structure containing all required services, as well as embedded server
 type ServerGRPC struct {
 	pb.UnimplementedShortenerServer
 	Database storage.DatabaseORM

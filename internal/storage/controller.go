@@ -28,6 +28,7 @@ type URLOfOwner struct {
 	OriginalURL string `json:"original_url"`
 }
 
+// StatsT is a structure returned by DatabaseORM.GetStats method
 type StatsT struct {
 	Urls  int64 `json:"urls"`
 	Users int64 `json:"users"`
