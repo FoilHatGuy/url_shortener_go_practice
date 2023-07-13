@@ -64,9 +64,6 @@ func (s *ServerGRPC) Cooker(
 	metadata.AppendToOutgoingContext(ctx, "user", newCookie)
 
 	response, errRPC = handler(ctx, req)
-	if err != nil {
-		fmt.Printf("RPC failed with error: %v", err)
-	}
 	return
 }
 
