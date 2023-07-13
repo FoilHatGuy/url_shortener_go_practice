@@ -80,7 +80,7 @@ func (s *MemoryTestSuite) TestAddGetURL() {
 	s.Assert().NoError(err)
 	u2, err := url.JoinPath(s.config.Server.BaseURL, shortURL2)
 	s.Assert().NoError(err)
-	expectedArray := []URLOfOwner{
+	expectedArray := []*URLOfOwner{
 		{
 			u1,
 			originalURL,

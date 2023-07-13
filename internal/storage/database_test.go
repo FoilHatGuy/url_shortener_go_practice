@@ -104,7 +104,7 @@ func (s *DBTestSuite) TestInit() {
 }
 
 func (s *DBTestSuite) TestCreation() {
-	newC := cfg.New(cfg.FromDefaults(), cfg.WithStorage(cfg.StorageT{DatabaseDSN: "dbname=test"}))
+	newC := cfg.New(cfg.FromDefaults(), cfg.WithStorage(&cfg.StorageT{DatabaseDSN: "dbname=test"}))
 	New(newC)
 	// To-Do finish test case
 }
@@ -168,7 +168,7 @@ func (s *DBTestSuite) TestAddGetURL() {
 	s.Assert().NoError(err)
 	u2, err := url.JoinPath(s.config.Server.BaseURL, shortURL2)
 	s.Assert().NoError(err)
-	expectedArray := []URLOfOwner{
+	expectedArray := []*URLOfOwner{
 		{
 			u1,
 			originalURL,

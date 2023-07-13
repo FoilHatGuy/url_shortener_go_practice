@@ -133,7 +133,7 @@ func FromEnv() ConfigOption {
 				BaseURL:        genv.Key("BASE_URL").Default(c.Server.BaseURL).String(),
 				CookieLifetime: genv.Key("SERVER_COOKIE_LIFETIME").Default(c.Server.CookieLifetime).Int(),
 				IsHTTPS:        genv.Key("ENABLE_HTTPS").Default(c.Server.IsHTTPS).Bool(),
-				TrustedSubnet:  genv.Key("TRUSTED_SUBNET").Default(c.Server.IsHTTPS).String(),
+				TrustedSubnet:  genv.Key("TRUSTED_SUBNET").Default(c.Server.TrustedSubnet).String(),
 			},
 
 			Storage: &StorageT{

@@ -91,6 +91,7 @@ func (s *ConfigTestSuite) TestFromEnv() {
 	t.Setenv("SECRET", secret)
 	t.Setenv("SHORT_URL_LENGTH", strconv.Itoa(shortURLLength))
 	t.Setenv("SERVER_ADDRESS", serverAddress)
+	t.Setenv("SERVER_ADDRESS_GRPC", serverAddress)
 	t.Setenv("SERVER_PORT", serverPort)
 	t.Setenv("BASE_URL", baseURL)
 	t.Setenv("SERVER_COOKIE_LIFETIME", strconv.Itoa(serverCookieLifetime))
@@ -107,6 +108,7 @@ func (s *ConfigTestSuite) TestFromEnv() {
 
 		Server: &ServerT{
 			AddressHTTP:    serverAddress,
+			AddressGRPC:    serverAddress,
 			Port:           serverPort,
 			BaseURL:        baseURL,
 			CookieLifetime: serverCookieLifetime,
