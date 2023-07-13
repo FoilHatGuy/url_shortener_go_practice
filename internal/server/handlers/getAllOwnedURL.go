@@ -57,6 +57,6 @@ func (s *ServerGRPC) GetAllOwnedURL(ctx context.Context, _ *pb.Empty) (out *pb.O
 			OriginalURL: el.OriginalURL,
 		})
 	}
-	out.Data = response
+	out = &pb.OwnedURLsOut{Data: response}
 	return
 }

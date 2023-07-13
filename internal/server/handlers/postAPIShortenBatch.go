@@ -83,7 +83,7 @@ func (s *ServerGRPC) BatchShorten(ctx context.Context, in *pb.BatchShortenIn) (o
 			ResultURL:     el.LineID,
 		})
 	}
-	out.Data = newRes
+	out = &pb.BatchShortenOut{Data: newRes}
 	return
 }
 

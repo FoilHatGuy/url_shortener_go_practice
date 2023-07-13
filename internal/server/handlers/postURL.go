@@ -58,7 +58,7 @@ func (s *ServerGRPC) PostURL(ctx context.Context, in *pb.PostURLIn) (out *pb.Pos
 		return
 	}
 
-	out.ResultURL = result
+	out = &pb.PostURLOut{ResultURL: result}
 	if added {
 		errRPC = status.Errorf(codes.OK, "")
 	} else {

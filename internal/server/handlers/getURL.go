@@ -45,7 +45,7 @@ func (s *ServerGRPC) GetURL(ctx context.Context, in *pb.GetURLIn) (out *pb.GetUR
 	case errors.Is(err, errInvalidInput):
 		errRPC = status.Errorf(codes.InvalidArgument, "")
 	default:
-		out.ResultURL = result
+		out = &pb.GetURLOut{ResultURL: result}
 	}
 	return
 }

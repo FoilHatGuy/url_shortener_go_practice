@@ -67,7 +67,9 @@ func (s *ServerGRPC) GetStats(ctx context.Context, _ *pb.Empty) (out *pb.Stats, 
 		errRPC = status.Errorf(codes.InvalidArgument, "")
 		return
 	}
-	out.URLsCount = data.Urls
-	out.UsersCount = data.Users
+	out = &pb.Stats{
+		URLsCount:  data.Urls,
+		UsersCount: data.Users,
+	}
 	return
 }
