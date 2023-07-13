@@ -250,7 +250,7 @@ func (d *databaseT) GetStats(ctx context.Context) (stats StatsT, err error) {
 	}
 
 	return StatsT{
-		Urls:  countURLs,
+		URLs:  countURLs,
 		Users: countUsers,
 	}, nil
 }

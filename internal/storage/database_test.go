@@ -248,6 +248,19 @@ func (s *DBTestSuite) TestAddConditions() {
 	s.Assert().False(ok)
 }
 
+func (s *DBTestSuite) TestGetStats() {
+	const (
+		userCount int64 = 123
+		urlCount  int64 = 321
+	)
+	s.expect.QueryRow(gomock.Any(), gomock.Any()).Return(pgxpoolmock.NewRow(urlCount))
+	s.expect.QueryRow(gomock.Any(), gomock.Any()).Return(pgxpoolmock.NewRow(userCount))
+	result, err := s.db.GetStats(s.ctx)
+	s.Assert().NoError(err)
+	s.Assert().Equal(urlCount, result.URLs)
+	s.Assert().Equal(userCount, result.Users)
+}
+
 func TestDatabase(t *testing.T) {
 	suite.Run(t, new(DBTestSuite))
 }

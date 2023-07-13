@@ -156,7 +156,7 @@ func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 func (s *storage) GetStats(_ context.Context) (stats StatsT, err error) {
 	var countURLs, countUsers int64
 	s.Data.Range(func(key, value any) bool {
-		countURLs += int64(len(value.([]string)))
+		countURLs++
 		return true
 	})
 	s.Owners.Range(func(key, value any) bool {
@@ -164,7 +164,7 @@ func (s *storage) GetStats(_ context.Context) (stats StatsT, err error) {
 		return true
 	})
 	return StatsT{
-		Urls:  countURLs,
+		URLs:  countURLs,
 		Users: countUsers,
 	}, nil
 }

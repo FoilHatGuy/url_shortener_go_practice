@@ -118,6 +118,34 @@ func (s *MemoryTestSuite) TestDeletion() {
 	s.Assert().Equal(result, "")
 }
 
+func (s *MemoryTestSuite) TestGetStats() {
+	uid := generateString(20)
+
+	originalURL := generateString(20)
+	shortURL := generateString(10)
+	ok, _, err := s.ctrl.AddURL(s.ctx, originalURL, shortURL, uid)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	originalURL2 := generateString(20)
+	shortURL2 := generateString(10)
+	ok, _, err = s.ctrl.AddURL(s.ctx, originalURL2, shortURL2, uid)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	uid3 := generateString(20)
+	originalURL3 := generateString(20)
+	shortURL3 := generateString(10)
+	ok, _, err = s.ctrl.AddURL(s.ctx, originalURL3, shortURL3, uid3)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	stats, err := s.ctrl.GetStats(s.ctx)
+	s.Assert().NoError(err)
+	s.Assert().Equal(int64(2), stats.Users)
+	s.Assert().Equal(int64(3), stats.URLs)
+}
+
 func TestMemory(t *testing.T) {
 	suite.Run(t, new(MemoryTestSuite))
 }
