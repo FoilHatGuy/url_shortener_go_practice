@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -21,7 +22,8 @@ import (
 // Either way, it allows the request handling.
 func (s *ServerHTTP) Cooker(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("user")
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrNoCookie) {
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 	newCookie, key, err := cooker(cookie, s.Security)
@@ -69,10 +71,12 @@ func (s *ServerGRPC) Cooker(
 }
 
 func cooker(cookie string, validator *auth.EngineT) (newCookie, key string, err error) {
-	key, err = validator.Validate(cookie) // validate input cookie/UID
-	if err == nil {                       // if ok => return same cookie
-		newCookie = cookie
-		return
+	if cookie != "" {
+		key, err = validator.Validate(cookie) // validate input cookie/UID
+		if err == nil {                       // if ok => return same cookie
+			newCookie = cookie
+			return
+		}
 	}
 	newCookie, key, err = validator.Generate() // else generate new
 	if err != nil {                            // check for error during generation

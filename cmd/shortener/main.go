@@ -23,6 +23,6 @@ func main() {
 		cfg.FromFlags(),
 		cfg.FromEnv(),
 	)
-	server.RunHTTP(cfgData)
+	go server.RunHTTP(cfgData)
 	server.RunGRPC(cfgData)
 }

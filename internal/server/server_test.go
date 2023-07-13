@@ -32,6 +32,8 @@ func (s *ServerTestSuite) SetupSuite() {
 			SavePath: "../data",
 		}),
 	)
+	s.config.Server.AddressHTTP = "localhost:8082"
+	s.config.Server.BaseURL = "http://localhost:8082"
 	storage.New(s.config)
 	s.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
