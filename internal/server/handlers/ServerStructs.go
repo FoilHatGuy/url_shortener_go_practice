@@ -4,10 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	pb "shortener/internal/server/pb"
-
 	"shortener/internal/auth"
 	"shortener/internal/cfg"
+	pb "shortener/internal/server/pb"
 	"shortener/internal/storage"
 )
 

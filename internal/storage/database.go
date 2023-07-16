@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	"shortener/internal/cfg"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"shortener/internal/cfg"
 )
 
 type poolWrapper struct {

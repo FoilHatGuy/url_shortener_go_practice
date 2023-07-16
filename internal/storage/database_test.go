@@ -9,17 +9,14 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgconn"
-
-	"shortener/internal/cfg"
-
+	"github.com/chrisyxlee/pgxpoolmock"
+	"github.com/golang/mock/gomock"
 	pgxV4 "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v5"
-
-	"github.com/golang/mock/gomock"
-
-	"github.com/chrisyxlee/pgxpoolmock"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/suite"
+
+	"shortener/internal/cfg"
 )
 
 type newRows struct {

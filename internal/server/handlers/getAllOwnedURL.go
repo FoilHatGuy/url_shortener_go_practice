@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	pb "shortener/internal/server/pb"
-
-	"github.com/gin-gonic/gin"
 )
 
 // GetAllOwnedURL

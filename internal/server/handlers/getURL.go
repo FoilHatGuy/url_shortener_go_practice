@@ -5,16 +5,13 @@ import (
 	"errors"
 	"net/http"
 
-	"shortener/internal/storage"
-
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "shortener/internal/server/pb"
-
 	"shortener/internal/cfg"
-
-	"github.com/gin-gonic/gin"
+	pb "shortener/internal/server/pb"
+	"shortener/internal/storage"
 )
 
 // GetURL

@@ -5,22 +5,21 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"shortener/internal/cfg"
+	"shortener/internal/server/handlers/utils"
 	pb "shortener/internal/server/pb"
 	"shortener/internal/storage"
-
-	"github.com/gin-gonic/gin"
-
-	"shortener/internal/server/handlers/utils"
 )
 
 type reqElement struct {
 	LineID string `json:"correlation_id"`
 	URL    string `json:"original_url"`
 }
+
 type resElement struct {
 	LineID string `json:"correlation_id"`
 	URL    string `json:"short_url"`

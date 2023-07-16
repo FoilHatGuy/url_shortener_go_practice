@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/mcuadros/go-defaults"
-
 	"github.com/stretchr/testify/suite"
 )
 

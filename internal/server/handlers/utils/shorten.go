@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"shortener/internal/storage"
-
 	"shortener/internal/cfg"
+	"shortener/internal/storage"
 )
 
 // Shorten is a common function used by handlers that perform adding URLs to database.

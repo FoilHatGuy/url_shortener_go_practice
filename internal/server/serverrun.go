@@ -12,18 +12,15 @@ import (
 	"syscall"
 	"time"
 
-	"google.golang.org/grpc"
-
-	pb "shortener/internal/server/pb"
-
-	"shortener/internal/auth"
-	"shortener/internal/storage"
-
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 
+	"shortener/internal/auth"
 	"shortener/internal/cfg"
 	"shortener/internal/server/handlers"
+	pb "shortener/internal/server/pb"
+	"shortener/internal/storage"
 )
 
 // RunHTTP
