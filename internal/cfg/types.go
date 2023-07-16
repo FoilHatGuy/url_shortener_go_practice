@@ -1,20 +1,22 @@
 package cfg
 
 type fileJSONT struct {
-	ServerAddress      string `json:"server_address"`
+	ServerAddressHTTP  string `json:"server_address_http"`
+	ServerAddressGRPC  string `json:"server_address_grpc"`
 	ServerBaseURL      string `json:"base_url"`
 	ServerEnableHTTPS  bool   `json:"enable_https"`
 	StorageSavePath    string `json:"file_storage_path"`
 	StorageDatabaseDSN string `json:"database_dsn"`
+	TrustedSubnet      string `json:"trusted_subnet"`
 }
 
 // ConfigT
 // Parent structure for all configuration structs. provides config separation into
 // ShortenerT, ServerT and StorageT for the ease of use
 type ConfigT struct {
-	Shortener ShortenerT
-	Server    ServerT
-	Storage   StorageT
+	Shortener *ShortenerT
+	Server    *ServerT
+	Storage   *StorageT
 }
 
 // ShortenerT
@@ -30,11 +32,14 @@ type ShortenerT struct {
 // Additionally, stores CookieLifetime used in session IDs.
 // Can be accessed via a structure of type ConfigT
 type ServerT struct {
-	Address        string `default:"localhost:8080"`
+	AddressHTTP string `default:"localhost:8080"`
+	AddressGRPC string `default:"localhost:8081"`
+
 	Port           string `default:"8080"`
 	BaseURL        string `default:"http://localhost:8080"`
 	CookieLifetime int    `default:"30 * 24 * 60 * 60"`
 	IsHTTPS        bool   `default:"false"`
+	TrustedSubnet  string `default:"127.0.0.1/32"`
 }
 
 // StorageT

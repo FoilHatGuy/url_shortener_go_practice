@@ -18,6 +18,7 @@ var (
 	fileStoragePath string
 	isHTTPS         bool
 	configPath      string
+	trustedSubnet   string
 )
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 	flag.StringVar(&fileStoragePath, "f", "", "File storage path")
 	flag.BoolVar(&isHTTPS, "s", false, "run server as HTTPS")
 	flag.StringVar(&configPath, "c", "", "path to JSON config")
+	flag.StringVar(&trustedSubnet, "t", "", "trusted subnet in CIDR notation")
 }
 
 // ConfigOption
@@ -38,9 +40,9 @@ type ConfigOption func(*ConfigT) *ConfigT
 // Returns the basic config with default values of ConfigT.
 func New(opts ...ConfigOption) *ConfigT {
 	cfg := &ConfigT{
-		Server:    ServerT{},
-		Shortener: ShortenerT{},
-		Storage:   StorageT{},
+		Server:    &ServerT{},
+		Shortener: &ShortenerT{},
+		Storage:   &StorageT{},
 	}
 
 	if !flag.Parsed() {
@@ -59,7 +61,9 @@ func New(opts ...ConfigOption) *ConfigT {
 //	@Description: Initializes default values of type ConfigT
 func FromDefaults() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
-		defaults.SetDefaults(c)
+		defaults.SetDefaults(c.Shortener)
+		defaults.SetDefaults(c.Server)
+		defaults.SetDefaults(c.Storage)
 		return c
 	}
 }
@@ -85,14 +89,20 @@ func FromJSON() ConfigOption {
 			fmt.Println(err)
 			return nil
 		}
-		if tempConfig.ServerAddress != "" {
-			c.Server.Address = tempConfig.ServerAddress
+		if tempConfig.ServerAddressHTTP != "" {
+			c.Server.AddressHTTP = tempConfig.ServerAddressHTTP
+		}
+		if tempConfig.ServerAddressGRPC != "" {
+			c.Server.AddressGRPC = tempConfig.ServerAddressGRPC
 		}
 		if tempConfig.ServerBaseURL != "" {
 			c.Server.BaseURL = tempConfig.ServerBaseURL
 		}
 		if tempConfig.ServerEnableHTTPS {
 			c.Server.IsHTTPS = true
+		}
+		if tempConfig.TrustedSubnet != "" {
+			c.Server.TrustedSubnet = tempConfig.TrustedSubnet
 		}
 		if tempConfig.StorageSavePath != "" {
 			c.Storage.SavePath = tempConfig.StorageSavePath
@@ -111,20 +121,22 @@ func FromJSON() ConfigOption {
 func FromEnv() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c = &ConfigT{
-			Shortener: ShortenerT{
+			Shortener: &ShortenerT{
 				Secret:    genv.Key("SECRET").Default(c.Shortener.Secret).String(),
 				URLLength: genv.Key("SHORT_URL_LENGTH").Default(c.Shortener.URLLength).Int(),
 			},
 
-			Server: ServerT{
-				Address:        genv.Key("SERVER_ADDRESS").Default(c.Server.Address).String(),
+			Server: &ServerT{
+				AddressHTTP:    genv.Key("SERVER_ADDRESS").Default(c.Server.AddressHTTP).String(),
+				AddressGRPC:    genv.Key("SERVER_ADDRESS_GRPC").Default(c.Server.AddressGRPC).String(),
 				Port:           genv.Key("SERVER_PORT").Default(c.Server.Port).String(),
 				BaseURL:        genv.Key("BASE_URL").Default(c.Server.BaseURL).String(),
 				CookieLifetime: genv.Key("SERVER_COOKIE_LIFETIME").Default(c.Server.CookieLifetime).Int(),
 				IsHTTPS:        genv.Key("ENABLE_HTTPS").Default(c.Server.IsHTTPS).Bool(),
+				TrustedSubnet:  genv.Key("TRUSTED_SUBNET").Default(c.Server.TrustedSubnet).String(),
 			},
 
-			Storage: StorageT{
+			Storage: &StorageT{
 				AutosaveInterval: genv.Key("STORAGE_AUTOSAVE_INTERVAL").Default(c.Storage.AutosaveInterval).Int(),
 				SavePath:         genv.Key("FILE_STORAGE_PATH").Default(c.Storage.SavePath).String(),
 				DatabaseDSN:      genv.Key("DATABASE_DSN").Default(c.Storage.DatabaseDSN).String(),
@@ -140,13 +152,16 @@ func FromEnv() ConfigOption {
 func FromFlags() ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		if serverAddress != "" {
-			c.Server.Address = serverAddress
+			c.Server.AddressHTTP = serverAddress
 		}
 		if baseURL != "" {
 			c.Server.BaseURL = baseURL
 		}
 		if isHTTPS {
 			c.Server.IsHTTPS = true
+		}
+		if trustedSubnet != "" {
+			c.Server.TrustedSubnet = trustedSubnet
 		}
 		if databaseDSN != "" {
 			c.Storage.DatabaseDSN = databaseDSN

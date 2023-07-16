@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package storage
 
 import (
@@ -22,7 +25,7 @@ type MemoryTestSuite struct {
 func (s *MemoryTestSuite) SetupTest() {
 	s.config = cfg.New(
 		cfg.FromDefaults(),
-		cfg.WithStorage(cfg.StorageT{
+		cfg.WithStorage(&cfg.StorageT{
 			AutosaveInterval: 5,
 			SavePath:         "../data",
 		}))
@@ -77,7 +80,7 @@ func (s *MemoryTestSuite) TestAddGetURL() {
 	s.Assert().NoError(err)
 	u2, err := url.JoinPath(s.config.Server.BaseURL, shortURL2)
 	s.Assert().NoError(err)
-	expectedArray := []URLOfOwner{
+	expectedArray := []*URLOfOwner{
 		{
 			u1,
 			originalURL,
@@ -113,6 +116,34 @@ func (s *MemoryTestSuite) TestDeletion() {
 	s.Assert().NoError(err)
 	s.Assert().True(ok)
 	s.Assert().Equal(result, "")
+}
+
+func (s *MemoryTestSuite) TestGetStats() {
+	uid := generateString(20)
+
+	originalURL := generateString(20)
+	shortURL := generateString(10)
+	ok, _, err := s.ctrl.AddURL(s.ctx, originalURL, shortURL, uid)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	originalURL2 := generateString(20)
+	shortURL2 := generateString(10)
+	ok, _, err = s.ctrl.AddURL(s.ctx, originalURL2, shortURL2, uid)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	uid3 := generateString(20)
+	originalURL3 := generateString(20)
+	shortURL3 := generateString(10)
+	ok, _, err = s.ctrl.AddURL(s.ctx, originalURL3, shortURL3, uid3)
+	s.Assert().NoError(err)
+	s.Assert().True(ok)
+
+	stats, err := s.ctrl.GetStats(s.ctx)
+	s.Assert().NoError(err)
+	s.Assert().Equal(int64(2), stats.Users)
+	s.Assert().Equal(int64(3), stats.URLs)
 }
 
 func TestMemory(t *testing.T) {

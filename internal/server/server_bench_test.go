@@ -21,7 +21,7 @@ func BenchmarkServer(b *testing.B) {
 	config := cfg.New(cfg.FromDefaults())
 	auth.New(config)
 	storage.New(config)
-	go Run(config)
+	go RunHTTP(config)
 	client := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse

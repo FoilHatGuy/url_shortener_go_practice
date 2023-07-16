@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package internal.server.pb;
+option go_package = ".";
+
+message Empty{}
+
+message PostURLIn {
+  string InputURL = 1;
+}
+message PostURLOut {
+  string ResultURL = 1;
+}
+
+message GetURLIn {
+  string InputURL = 1;
+}
+message GetURLOut {
+  string ResultURL = 1;
+}
+
+message BatchShortenInElement {
+  string CorrelationID = 1;
+  string InputURL = 2;
+}
+message BatchShortenIn {
+  repeated BatchShortenInElement data = 1;
+}
+message BatchShortenOutElement {
+  string CorrelationID = 1;
+  string ResultURL = 2;
+}
+message BatchShortenOut {
+  repeated BatchShortenOutElement data = 1;
+}
+
+message DeleteURLIn {
+  repeated string InputURLs = 1;
+}
+
+message URLPair {
+  string ShortURL = 1;
+  string OriginalURL = 2;
+}
+message OwnedURLsOut {
+  repeated URLPair Data=1;
+}
+
+message Stats {
+  int64 URLsCount = 1;
+  int64 UsersCount = 2;
+}
+
+
+service Shortener {
+  //  rpc PostURL (PostURLIn) returns (PostURLOut) {} //?? do I even need this if I have API versions?
+  rpc PostAPIURL (PostURLIn) returns (PostURLOut) {} // will implement both though
+  // ok I need this next one cuz there is no way
+  // to get URL via API apart from GetAllOwned
+  rpc GetURL (GetURLIn) returns (GetURLOut) {}
+  rpc DeleteURLs (DeleteURLIn) returns (Empty) {}
+  rpc BatchShorten (BatchShortenIn) returns (BatchShortenOut) {}
+  rpc PingDatabase (Empty) returns (Empty) {}
+  rpc GetAllOwnedURL (Empty) returns (OwnedURLsOut) {}
+  rpc GetStats (Empty) returns (Stats) {}
+
+}

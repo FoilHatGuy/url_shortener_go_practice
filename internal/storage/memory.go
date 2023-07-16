@@ -113,8 +113,8 @@ func (s *storage) GetURL(_ context.Context, url string) (original string, ok boo
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
-	var result []URLOfOwner
+func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []*URLOfOwner, err error) {
+	var result []*URLOfOwner
 	user, ok := s.Owners.Load(owner)
 	if !ok {
 		return nil, nil
@@ -127,7 +127,7 @@ func (s *storage) GetURLByOwner(_ context.Context, owner string) (arrayURLs []UR
 		v, ok := s.Data.Load(address)
 		if ok {
 			origURL := v.(dataTVal).Original
-			result = append(result, URLOfOwner{fullAddr, origURL})
+			result = append(result, &URLOfOwner{fullAddr, origURL})
 		}
 	}
 	return result, nil
@@ -150,6 +150,23 @@ func (s *storage) Delete(_ context.Context, urls []string, owner string) error {
 	}
 
 	return nil
+}
+
+// GetStats returns the number of urls and users
+func (s *storage) GetStats(_ context.Context) (stats StatsT, err error) {
+	var countURLs, countUsers int64
+	s.Data.Range(func(key, value any) bool {
+		countURLs++
+		return true
+	})
+	s.Owners.Range(func(key, value any) bool {
+		countUsers++
+		return true
+	})
+	return StatsT{
+		URLs:  countURLs,
+		Users: countUsers,
+	}, nil
 }
 
 // Ping checks the database availability

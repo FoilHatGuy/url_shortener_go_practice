@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package cfg
 
 import (
@@ -9,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/mcuadros/go-defaults"
-
 	"github.com/stretchr/testify/suite"
 )
 
@@ -19,17 +21,24 @@ type ConfigTestSuite struct {
 
 func (s *ConfigTestSuite) TestNew() {
 	config1 := New(FromDefaults())
-	config2 := new(ConfigT)
-	defaults.SetDefaults(config2)
+	config2 := &ConfigT{
+		Shortener: &ShortenerT{},
+		Server:    &ServerT{},
+		Storage:   &StorageT{},
+	}
+	defaults.SetDefaults(config2.Shortener)
+	defaults.SetDefaults(config2.Server)
+	defaults.SetDefaults(config2.Storage)
 	s.Assert().Equal(config1, config2)
 }
 
 func (s *ConfigTestSuite) TestWithServer() {
-	source := ServerT{
-		Address:        "SERVER_ADDRESS_VALUE",
+	source := &ServerT{
+		AddressHTTP:    "SERVER_ADDRESS_VALUE",
 		Port:           "SERVER_PORT_VALUE",
 		BaseURL:        "BASE_URL_VALUE",
 		CookieLifetime: 20,
+		TrustedSubnet:  "TRUSTED_SUBNET",
 	}
 	config1 := New(
 		FromDefaults(),
@@ -39,7 +48,7 @@ func (s *ConfigTestSuite) TestWithServer() {
 }
 
 func (s *ConfigTestSuite) TestWithShortener() {
-	source := ShortenerT{
+	source := &ShortenerT{
 		Secret:    "SECRET_VALUE",
 		URLLength: 10,
 	}
@@ -51,7 +60,7 @@ func (s *ConfigTestSuite) TestWithShortener() {
 }
 
 func (s *ConfigTestSuite) TestWithStorage() {
-	source := StorageT{
+	source := &StorageT{
 		AutosaveInterval: 10,
 		SavePath:         "FILE_STORAGE_PATH_VALUE",
 		DatabaseDSN:      "DATABASE_DSN_VALUE",
@@ -76,31 +85,36 @@ func (s *ConfigTestSuite) TestFromEnv() {
 		storageAutosaveInterval = 30
 		fileStoragePath         = "FILE_STORAGE_PATH_VALUE"
 		databaseDsn             = "DATABASE_DSN_VALUE"
+		trustedSubnet           = "TRUSTED_SUBNET"
 	)
 	t.Setenv("SECRET", secret)
 	t.Setenv("SHORT_URL_LENGTH", strconv.Itoa(shortURLLength))
 	t.Setenv("SERVER_ADDRESS", serverAddress)
+	t.Setenv("SERVER_ADDRESS_GRPC", serverAddress)
 	t.Setenv("SERVER_PORT", serverPort)
 	t.Setenv("BASE_URL", baseURL)
 	t.Setenv("SERVER_COOKIE_LIFETIME", strconv.Itoa(serverCookieLifetime))
 	t.Setenv("STORAGE_AUTOSAVE_INTERVAL", strconv.Itoa(storageAutosaveInterval))
 	t.Setenv("FILE_STORAGE_PATH", fileStoragePath)
 	t.Setenv("DATABASE_DSN", databaseDsn)
+	t.Setenv("TRUSTED_SUBNET", trustedSubnet)
 
 	config1 := &ConfigT{
-		Shortener: ShortenerT{
+		Shortener: &ShortenerT{
 			Secret:    secret,
 			URLLength: shortURLLength,
 		},
 
-		Server: ServerT{
-			Address:        serverAddress,
+		Server: &ServerT{
+			AddressHTTP:    serverAddress,
+			AddressGRPC:    serverAddress,
 			Port:           serverPort,
 			BaseURL:        baseURL,
 			CookieLifetime: serverCookieLifetime,
+			TrustedSubnet:  trustedSubnet,
 		},
 
-		Storage: StorageT{
+		Storage: &StorageT{
 			AutosaveInterval: storageAutosaveInterval,
 			SavePath:         fileStoragePath,
 			DatabaseDSN:      databaseDsn,
@@ -137,7 +151,7 @@ func (s *ConfigTestSuite) TestFromFlags() {
 		FromFlags(),
 	)
 
-	s.Assert().Equal(config1.Server.Address, address)
+	s.Assert().Equal(config1.Server.AddressHTTP, address)
 	s.Assert().Equal(config1.Server.BaseURL, baseURL)
 	s.Assert().Equal(config1.Server.IsHTTPS, isHTTPS)
 	s.Assert().Equal(config1.Storage.DatabaseDSN, databaseDSN)
@@ -147,7 +161,8 @@ func (s *ConfigTestSuite) TestFromFlags() {
 func (s *ConfigTestSuite) TestFromJSONFile() {
 	const filePath = "./test.json"
 	origin := fileJSONT{
-		ServerAddress:      "1",
+		ServerAddressHTTP:  "1",
+		ServerAddressGRPC:  "1.1",
 		ServerBaseURL:      "2",
 		ServerEnableHTTPS:  true,
 		StorageSavePath:    "3",
@@ -177,7 +192,8 @@ func (s *ConfigTestSuite) TestFromJSONFile() {
 		FromJSON(),
 	)
 
-	s.Assert().Equal(config1.Server.Address, origin.ServerAddress)
+	s.Assert().Equal(config1.Server.AddressHTTP, origin.ServerAddressHTTP)
+	s.Assert().Equal(config1.Server.AddressGRPC, origin.ServerAddressGRPC)
 	s.Assert().Equal(config1.Server.BaseURL, origin.ServerBaseURL)
 	s.Assert().Equal(config1.Server.IsHTTPS, origin.ServerEnableHTTPS)
 	s.Assert().Equal(config1.Storage.DatabaseDSN, origin.StorageDatabaseDSN)
@@ -220,7 +236,8 @@ func (s *ConfigTestSuite) TestParseFlagsTwice() {
 		FromFlags(),
 	)
 
-	s.Assert().Equal(config1.Server.Address, config2.Server.Address)
+	s.Assert().Equal(config1.Server.AddressHTTP, config2.Server.AddressHTTP)
+	s.Assert().Equal(config1.Server.AddressGRPC, config2.Server.AddressGRPC)
 	s.Assert().Equal(config1.Server.BaseURL, config2.Server.BaseURL)
 	s.Assert().Equal(config1.Server.IsHTTPS, config2.Server.IsHTTPS)
 	s.Assert().Equal(config1.Storage.DatabaseDSN, config2.Storage.DatabaseDSN)

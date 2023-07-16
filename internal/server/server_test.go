@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package server
 
 import (
@@ -25,17 +28,19 @@ type ServerTestSuite struct {
 func (s *ServerTestSuite) SetupSuite() {
 	s.config = cfg.New(
 		cfg.FromDefaults(),
-		cfg.WithStorage(cfg.StorageT{
+		cfg.WithStorage(&cfg.StorageT{
 			SavePath: "../data",
 		}),
 	)
+	s.config.Server.AddressHTTP = "localhost:8082"
+	s.config.Server.BaseURL = "http://localhost:8082"
 	storage.New(s.config)
 	s.client = http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
-	go Run(s.config)
+	go RunHTTP(s.config)
 	time.Sleep(1 * time.Second)
 }
 
@@ -215,8 +220,9 @@ func (s *ServerTestSuite) TestDeleteRequest() {
 	s.Assert().NoError(err)
 }
 
-func (s *ServerTestSuite) TestGetUserRequest() {
-}
+// func (s *ServerTestSuite) TestServerTearDown() {
+//	os.Process.Signal(os.sy)
+//}
 
 func TestServerTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))

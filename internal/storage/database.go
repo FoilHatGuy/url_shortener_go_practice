@@ -15,8 +15,45 @@ import (
 	"shortener/internal/cfg"
 )
 
+type poolWrapper struct {
+	pool *pgxpool.Pool
+}
+
+// Close is a wrapper function for the Close method of any available pg connection
+func (p poolWrapper) Close() {
+	p.pool.Close()
+}
+
+// Exec is a wrapper function for the Exec method of any available pg connection
+func (p poolWrapper) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+	return p.pool.Exec(ctx, sql, arguments...) //nolint:wrapcheck
+}
+
+// Query is a wrapper function for the Query method of any available pg connection
+func (p poolWrapper) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return p.pool.Query(ctx, sql, args...) //nolint:wrapcheck
+}
+
+// QueryRow is a wrapper function for the QueryRow method of any available pg connection
+func (p poolWrapper) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return p.pool.QueryRow(ctx, sql, args...)
+}
+
+// Ping is a wrapper function for the Ping method of any available pg connection
+func (p poolWrapper) Ping(ctx context.Context) error {
+	return p.pool.Ping(ctx) //nolint:wrapcheck
+}
+
+type databaseI interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Ping(ctx context.Context) error
+	Close()
+}
+
 type databaseT struct {
-	database *pgxpool.Pool
+	database databaseI
 	config   *cfg.ConfigT
 }
 
@@ -24,9 +61,6 @@ type databaseT struct {
 // Performs initial setup of main operating variable using configuration from cfg.ConfigT.
 // Creates the database on postgres specified by cfg.StorageT DatabaseDSN field
 func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
-	if config.Storage.DatabaseDSN == "" {
-		return nil
-	}
 	fmt.Println("CREATING DATABASE")
 	r := regexp.MustCompile(`dbname=[a-zA-Z0-9]*`)
 	initAddress := r.ReplaceAllString(config.Storage.DatabaseDSN, "")
@@ -64,7 +98,7 @@ func databaseInitialize(config *cfg.ConfigT) DatabaseORM {
 		return nil
 	}
 	return &databaseT{
-		database: db,
+		database: &poolWrapper{db},
 		config:   config,
 	}
 }
@@ -157,7 +191,7 @@ func (d *databaseT) GetURL(ctx context.Context, short string) (original string, 
 }
 
 // GetURLByOwner returns slice of URLOfOwner by user's uid
-func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []URLOfOwner, err error) {
+func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs []*URLOfOwner, err error) {
 	rows, err := d.database.Query(ctx, `
 		SELECT short_url, original_url FROM urls, users
 		WHERE user_id = $1 AND short_url = url
@@ -167,7 +201,6 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 		return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 	}
 	defer rows.Close()
-	fmt.Println(rows)
 	var originalURL, shortURL string
 	for rows.Next() {
 		err = rows.Scan(&shortURL, &originalURL)
@@ -175,7 +208,7 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 			return nil, fmt.Errorf("while database.GetURLByOwner %w", err)
 		}
 		fullAddr, _ := url.JoinPath(d.config.Server.BaseURL, shortURL)
-		arrayURLs = append(arrayURLs, URLOfOwner{fullAddr, originalURL})
+		arrayURLs = append(arrayURLs, &URLOfOwner{fullAddr, originalURL})
 	}
 
 	return arrayURLs, nil
@@ -183,8 +216,7 @@ func (d *databaseT) GetURLByOwner(ctx context.Context, owner string) (arrayURLs 
 
 // Delete marks url as deleted, and it will no longer be accessible by GetURL
 func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner string) error {
-	fmt.Println(stringArray)
-	q, err := d.database.Exec(ctx, fmt.Sprintf(`
+	_, err := d.database.Exec(ctx, fmt.Sprintf(`
 		UPDATE urls
 		SET deleted = TRUE
 		WHERE short_url IN ('%s') AND short_url IN
@@ -192,12 +224,35 @@ func (d *databaseT) Delete(ctx context.Context, stringArray []string, owner stri
 		    SELECT url FROM users WHERE user_id = $1
 		)
 	`, strings.Join(stringArray, "', '")), owner)
-	fmt.Println("QQQQ\n", q)
 	if err != nil {
 		fmt.Println("ERR", err)
 		return fmt.Errorf("while database.Delete %w", err)
 	}
 	return nil
+}
+
+// GetStats returns the number of urls and users
+func (d *databaseT) GetStats(ctx context.Context) (stats StatsT, err error) {
+	var countURLs, countUsers int64
+
+	err = d.database.QueryRow(ctx, `
+	SELECT COUNT(short_url) FROM urls
+`).Scan(&countURLs)
+	if err != nil {
+		return StatsT{}, fmt.Errorf("while database.Stats %w", err)
+	}
+
+	err = d.database.QueryRow(ctx, `
+	SELECT COUNT(DISTINCT user_id) FROM owners
+`).Scan(&countUsers)
+	if err != nil {
+		return StatsT{}, fmt.Errorf("while database.Stats %w", err)
+	}
+
+	return StatsT{
+		URLs:  countURLs,
+		Users: countUsers,
+	}, nil
 }
 
 // Ping checks the database availability

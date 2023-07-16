@@ -21,11 +21,11 @@ jobs:
           cache: true
 
       - name: Test
-        run: go test -race -coverprofile unit.txt -covermode atomic ./...
+        run: go test -tags=unit -race -coverprofile unit.txt -covermode atomic ./...
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v3
         with:
           file: ./unit.txt
-          flags: unit,memStore
+          flags: unit
           name: unit

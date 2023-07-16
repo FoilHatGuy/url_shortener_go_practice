@@ -4,7 +4,7 @@ package cfg
 //
 //	@Description: replaces the StorageT config with supplied one
 //	@param data
-func WithStorage(data StorageT) ConfigOption {
+func WithStorage(data *StorageT) ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c.Storage = data
 		return c
@@ -15,7 +15,7 @@ func WithStorage(data StorageT) ConfigOption {
 //
 //	@Description: replaces the ShortenerT config with supplied one
 //	@param data
-func WithShortener(data ShortenerT) ConfigOption {
+func WithShortener(data *ShortenerT) ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c.Shortener = data
 		return c
@@ -26,7 +26,7 @@ func WithShortener(data ShortenerT) ConfigOption {
 //
 //	@Description: replaces the ServerT config with supplied one
 //	@param data
-func WithServer(data ServerT) ConfigOption {
+func WithServer(data *ServerT) ConfigOption {
 	return func(c *ConfigT) *ConfigT {
 		c.Server = data
 		return c
